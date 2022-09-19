@@ -35,9 +35,11 @@ class Tablero:
     def getAlto(self):
         return self.alto
     
+    # return: 0=vacio, 1=persona, 2=maquina
     def getCelda(self, fila, col):
         return self.tablero[fila][col]
     
+    # val: 0=vacio, 1=persona, 2=maquina
     def setCelda(self, fila, col, val):
         self.tablero[fila][col]=val    
     
@@ -45,6 +47,7 @@ class Tablero:
     def cuatroEnRaya(self):
         i=0        
         fin=False
+        # ganador: 1=persona, 2=maquina
         ganador=0
         
         while not fin and i<self.getAlto():
