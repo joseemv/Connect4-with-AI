@@ -33,19 +33,23 @@ def main():
                 #comprobar que es una posición válida
                 fila=busca(tablero, colDestino)
                 if fila!=-1:                    
-                    tablero.setCelda(fila, colDestino, 1)           
+                    tablero.setCelda(fila, colDestino, 1)         
+                else:
+                    game_over = True
+                    print ("error en jugada persona")  
                 if tablero.cuatroEnRaya()==1:
                     game_over=True
                     print ("gana persona")               
                 else:  #si la persona no ha ganado, juega la máquina
-#                     posicion = juega(tablero)
                     fila, columna = juega(tablero)
-#                     tablero.setCelda(posicion[0], posicion[1], 2)
                     if (fila != -1):
                         tablero.setCelda(fila, columna, 2)
                         if tablero.cuatroEnRaya()==2:
                             game_over=True
                             print ("gana máquina")
+                    else:
+                        game_over = True
+                        print ("error en jugada máquina")
             
         #código de dibujo        
         #limpiar pantalla
@@ -73,4 +77,3 @@ def main():
  
 if __name__=="__main__":
     main()
- 

@@ -64,6 +64,7 @@ def minimax(tablero, profundidad, jugador):
         # solo devuelve puntuación porque solo importa la posición elegida por la raíz
         return puntuacionMejor, None
 
+    # se inicializa la 
     if (jugador):
         puntuacionMejor = float("inf")
     else:
@@ -76,22 +77,26 @@ def minimax(tablero, profundidad, jugador):
         if fila != -1:
             # genera copia del tablero para simular las jugadas
             simulacionTablero = Tablero(tablero)
+
             # juega persona MIN
             if (jugador):
                 simulacionTablero.setCelda(fila, columna, 1)
-                # recibe la mejor puntuación de las siguientes jugadas
+                # recibe la menor puntuación de las siguientes jugadas
                 puntuacionActual = minimax(simulacionTablero, profundidad-1, False)[0]
-                # si la puntuación es mejor que las anteriores se guarda la columna
+                # si la puntuación es menor que las anteriores se guarda junto a la columna
                 if (puntuacionActual < puntuacionMejor):
                     puntuacionMejor = puntuacionActual
                     mejorColumna = columna
             # juega máquina MAX
             else:
                 simulacionTablero.setCelda(fila, columna, 2)
+                # recibe la mayor puntuación de las siguientes jugadas
                 puntuacionActual = minimax(simulacionTablero, profundidad-1, True)[0]
+                # si la puntuación es mayor que las anteriores se guarda junto a la columna
                 if (puntuacionActual > puntuacionMejor):
                     puntuacionMejor = puntuacionActual
                     mejorColumna = columna
+
     # devolverá la puntuación a nodos hijos para recordar la rama que les beneficie y la mejor columna a la raíz para así tomar la decisión
     return puntuacionMejor, mejorColumna
 
