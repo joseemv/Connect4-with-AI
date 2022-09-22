@@ -8,16 +8,20 @@ def finArbol(tablero, profundidad):
 
 # devuelve la primer fila vacía de la columna indicada o -1 si están todas ocupadas
 def busca(tablero, col):
-    i = 0
-    # recorre filas de la columna
-    while i < tablero.getAlto():
+    i = tablero.getAlto()-1
+    hueco = False
+    
+    # recorre filas de la columna de arriba a abajo
+    while i < tablero.getAlto() and i >= 0 and hueco == False:
         # si encuentra celda vacía
         if (tablero.getCelda(i, col) == 0):
-            return i
-        i += 1
+            hueco = True
    
-   # si no encuentra hueco vacío
-    return -1
+        # si no encuentra hueco vacío
+        else:
+            i -= 1
+            
+    return i
 
 # devuelve número de columnas disponibles para la siguiente jugada
 def posiblesMovimientos(tablero):
@@ -30,43 +34,150 @@ def posiblesMovimientos(tablero):
 
 # llama al algoritmo que decide la jugada
 def juega(tablero):
-    profundidad = 5
-    posicion = minimax(tablero, profundidad, False, 0)
-    return posicion
+    profundidad = 3
+    mejorColumna = minimax(tablero, profundidad, False)[1]      
+    fila = busca(tablero, mejorColumna)    
     
-def minimax(tablero, profundidad, jugador, puntuacionMejor):
-    # f(N): función de evaluación.
-    # N: estado.
-    # B: factor de ramificación.
-    # profunidad: tiene que ser impar para mantener orden de jugadores
+    return fila, mejorColumna
     
-    posicion = [0][0]
+def minimax(tablero, profundidad, jugador):    
     fin = finArbol(tablero, profundidad)
     ganador = tablero.cuatroEnRaya()
+    puntuacionMejor = 0
+    mejorColumna = 0
     
+    # gana alguien, empate o límite de  profunidad
     if (fin or ganador != 0):
+        # gana jugador
         if (ganador == 1):
             puntuacionMejor = -float("inf")
+        # gana máquina
         elif (ganador == 2):
             puntuacionMejor = float("inf")
-        return None, puntuacionMejor            
-            
-    for columna in range(tablero.getAncho()):
+        # límite profundidad
+        elif (profundidad == 0):
+            puntuacionMejor = evaluarSituacion(tablero, jugador)
+        # empate
+        else:
+            puntuacionMejor = 0
+
+        # solo devuelve puntuación porque solo importa la posición elegida por la raíz
+        return puntuacionMejor, None
+
+    if (jugador):
+        puntuacionMejor = float("inf")
+    else:
+        puntuacionMejor = -float("inf")
+
+    # genera nodos en función de las jugadas posibles  
+    for columna in range(tablero.getAncho()):        
         fila = busca(tablero, columna)
+        # si hay huecos en la columna
         if fila != -1:
+            # genera copia del tablero para simular las jugadas
             simulacionTablero = Tablero(tablero)
+            # juega persona MIN
             if (jugador):
                 simulacionTablero.setCelda(fila, columna, 1)
-                puntuacionMejor = float("inf")
-                puntuacionActual = minimax(simulacionTablero, profundidad-1, False, puntuacionMejor)[1]
+                # recibe la mejor puntuación de las siguientes jugadas
+                puntuacionActual = minimax(simulacionTablero, profundidad-1, False)[0]
+                # si la puntuación es mejor que las anteriores se guarda la columna
                 if (puntuacionActual < puntuacionMejor):
                     puntuacionMejor = puntuacionActual
+                    mejorColumna = columna
+            # juega máquina MAX
             else:
                 simulacionTablero.setCelda(fila, columna, 2)
-                puntuacionMejor = -float("inf")
-                puntuacionActual = minimax(simulacionTablero, profundidad-1, True, puntuacionMejor)[1]
+                puntuacionActual = minimax(simulacionTablero, profundidad-1, True)[0]
                 if (puntuacionActual > puntuacionMejor):
                     puntuacionMejor = puntuacionActual
-            posicion[0] = columna
-            posicion[1] = fila
-    return posicion, puntuacionMejor
+                    mejorColumna = columna
+    # devolverá la puntuación a nodos hijos para recordar la rama que les beneficie y la mejor columna a la raíz para así tomar la decisión
+    return puntuacionMejor, mejorColumna
+
+def evaluarSituacion(tablero, jugador):
+    puntuacion = 0
+    
+    ficha = 2
+    if (jugador):
+        ficha = 1
+        
+    # puntuacion vertical
+    for fila in range(tablero.getAlto()-3):
+        for columna in range(tablero.getAncho()):
+            libres = 0
+            ocupadas = 0
+            enemigas = 0
+            for i in range(4):
+                if (tablero.getCelda(fila+i, columna) == 0):
+                    libres += 1
+                elif (tablero.getCelda(fila+i, columna) == ficha):
+                    ocupadas += 1
+                else:
+                    enemigas += 1
+            puntuacion += sumarPuntos(libres, ocupadas, enemigas)
+    
+    # puntuacion horizontal
+    for fila in range(tablero.getAlto()):
+        for columna in range(tablero.getAncho()-3):
+            libres = 0
+            ocupadas = 0
+            enemigas = 0
+            for i in range(4):
+                if (tablero.getCelda(fila, columna+i) == 0):
+                    libres += 1
+                elif (tablero.getCelda(fila, columna+i) == ficha):
+                    ocupadas += 1
+                else:
+                    enemigas += 1
+            puntuacion += sumarPuntos(libres, ocupadas, enemigas)
+    
+    # puntuacion diagonal de izda a dcha
+    for fila in range(tablero.getAlto()-3):
+        for columna in range(tablero.getAncho()-3):
+            libres = 0
+            ocupadas = 0
+            enemigas = 0
+            for i in range(4):
+                if (tablero.getCelda(fila+i, columna+i) == 0):
+                    libres += 1
+                elif (tablero.getCelda(fila+i, columna+i) == ficha):
+                    ocupadas += 1
+                else:
+                    enemigas += 1
+            puntuacion += sumarPuntos(libres, ocupadas, enemigas)
+    
+    # puntuacion diagonal de dcha a izda
+    for fila in range(tablero.getAlto()-3):
+        for columna in range(3, tablero.getAncho()):
+            libres = 0
+            ocupadas = 0
+            enemigas = 0
+            for i in range(4):
+                if (tablero.getCelda(fila+i, columna-i) == 0):
+                    libres += 1
+                elif (tablero.getCelda(fila+i, columna-i) == ficha):
+                    ocupadas += 1
+                else:
+                    enemigas += 1
+            puntuacion += sumarPuntos(libres, ocupadas, enemigas)
+
+    if (jugador):
+        return -puntuacion
+    return puntuacion
+                
+def sumarPuntos(libres, ocupadas, enemigas):
+    puntos = 0
+
+    if (enemigas == 3 and libres == 1):
+        puntos = -10
+    elif (enemigas == 2 and libres == 2):
+        puntos = -5
+    elif (ocupadas == 3 and libres == 1):
+        puntos = 7
+    elif (ocupadas == 2 and libres == 2):
+        puntos = 4
+    elif (ocupadas == 1 and libres == 3):
+        puntos = 1
+
+    return puntos
