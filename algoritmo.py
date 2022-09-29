@@ -134,111 +134,134 @@ def puntuacionVertical(tablero, fichaEnemiga):
         combinacion = []
         for fila in range(tablero.getAlto()):
             combinacion.append(tablero.getCelda(fila, columna))
-            puntuacion += sumarPuntos(combinacion, fichaEnemiga)
             if (len(combinacion) == 4):
+                puntuacion += analizarCombinacion(combinacion, fichaEnemiga)
                 combinacion.pop(0)
         combinacion.clear()
             
     return puntuacion
 
 # puntuacion de izda a dcha por filas
-def puntuacionHorizontal(tablero, ficha):
+def puntuacionHorizontal(tablero, fichaEnemiga):
     puntuacion = 0
 
     for fila in range(tablero.getAlto()):
-        for columna in range(tablero.getAncho()-3):
-            libres = 0
-            ocupadas = 0
-            enemigas = 0
-            for i in range(4):
-                if (tablero.getCelda(fila, columna+i) == 0):
-                    libres += 1
-                elif (tablero.getCelda(fila, columna+i) == ficha):
-                    ocupadas += 1
-                else:
-                    enemigas += 1
-            puntuacion += sumarPuntos(libres, ocupadas, enemigas)
-
+        combinacion = []
+        for columna in range(tablero.getAncho()):
+            combinacion.append(tablero.getCelda(fila, columna))
+            if (len(combinacion) == 4):
+                puntuacion += analizarCombinacion(combinacion, fichaEnemiga)
+                combinacion.pop(0)
+        combinacion.clear()
+            
     return puntuacion
 
 # puntuacion diagonal de izda a dcha por filas
-def puntuacionDiagDcha(tablero, ficha):
+def puntuacionDiagDcha(tablero, fichaEnemiga):
     puntuacion = 0
 
-    for fila in range(tablero.getAlto()-3):
-        for columna in range(tablero.getAncho()-3):     
-            libres = 0
-            ocupadas = 0
-            enemigas = 0
-            for i in range(4):
-                if (tablero.getCelda(fila+i, columna+i) == 0):
-                    libres += 1
-                elif (tablero.getCelda(fila+i, columna+i) == ficha):
-                    ocupadas += 1
-                else:
-                    enemigas += 1
-            puntuacion += sumarPuntos(libres, ocupadas, enemigas)
+    # parte superior (x/y <= 1)
+    longDiagonal = 0
+    for fila in range(3, tablero.getAlto()):
+        combinacion = []
+        for columna in range(tablero.getAncho() - 4 + longDiagonal):
+            combinacion.append(tablero.getCelda(fila - columna, columna))
+            if (len(combinacion) == 4):
+                puntuacion += analizarCombinacion(combinacion, fichaEnemiga)
+                combinacion.pop(0)
+        combinacion.clear()
+        longDiagonal += 1
+
+    # parte inferior (x/y > 1)
+    longDiagonal = 0
+    for columna in range(1, tablero.getAncho() - 3):
+        combinacion = []
+        for fila in range(tablero.getAlto(), 0 + longDiagonal, -1):
+            combinacion.append(tablero.getCelda(fila, columna + tablero.getAlto() - fila))
+            if (len(combinacion) == 4):
+                puntuacion += analizarCombinacion(combinacion, fichaEnemiga)
+                combinacion.pop(0)
+        combinacion.clear()
+        longDiagonal += 1
             
     return puntuacion
 
 # puntuacion diagonal de dcha a izda por filas
-def puntuacionDiagIzda(tablero, ficha):
+def puntuacionDiagIzda(tablero, fichaEnemiga):
     puntuacion = 0
 
-    for fila in range(tablero.getAlto()-3):
-        for columna in range(3, tablero.getAncho()):
-            libres = 0
-            ocupadas = 0
-            enemigas = 0
-            for i in range(4):
-                if (tablero.getCelda(fila+i, columna-i) == 0):
-                    libres += 1
-                elif (tablero.getCelda(fila+i, columna-i) == ficha):
-                    ocupadas += 1
-                else:
-                    enemigas += 1
-            puntuacion += sumarPuntos(libres, ocupadas, enemigas)
+    # parte superior
+    longDiagonal = 0
+    for columna in range(3, tablero.getAncho() - 1):
+        combinacion = []
+        for fila in range(tablero.getAlto(), 3 - longDiagonal):
+            combinacion.append(tablero.getCelda(fila, 1 + columna - tablero.getAlto() - fila))
+            if (len(combinacion) == 4):
+                puntuacion += analizarCombinacion(combinacion, fichaEnemiga)
+                combinacion.pop(0)
+        combinacion.clear()
+        longDiagonal += 1
+
+    # parte inferior
+    longDiagonal = 0
+    for fila in range(tablero.getAlto(), 3, -1):
+        combinacion = []
+        for columna in range(tablero.getAncho(), 0 + longDiagonal, -1):
+            combinacion.append(tablero.getCelda(columna - longDiagonal, columna))
+            if (len(combinacion) == 4):
+                puntuacion += analizarCombinacion(combinacion, fichaEnemiga)
+                combinacion.pop(0)
+        combinacion.clear()
+        longDiagonal += 1
             
     return puntuacion
 
-# Analiza la composición de la combinación de fichas
+# analiza la composición de la combinación de fichas
 def analizarCombinacion(combinacion, fichaEnemiga):
-    puntos = 0
     aliadas = 0
+    enemigas = 0
 
     for ficha in combinacion:
         if ((ficha != fichaEnemiga) and (ficha != 0)):
             aliadas += 1
         elif (ficha == fichaEnemiga):
-            return 0
-
-    match aliadas:
-        case 1:
-            return 1
-        case 2:
-            return 3
-        case 3:
-            return 7
+            aliadas = 0
+            break
     
-    return sumarPuntos(aliadas)
+    for ficha in combinacion:
+        if (ficha == fichaEnemiga):
+            enemigas += 1
+        elif ((ficha != ficha) and (ficha != 0)):
+            enemigas = 0
+            break
+    
+    if (aliadas > 0):
+        return sumarPuntos(aliadas, False)
+    elif (enemigas > 0):
+        return -sumarPuntos(enemigas, True)
+    else:
+        return 0
 
-# suma puntos en función de que posiciones del tablero están ocupadas y por qué jugador
-def sumarPuntos(libres, aliadas, enemiga):
-    puntos = 0
-
-    # cuenta a adversario como ganador porque la siguiente jugada es suya
-    if (not enemiga):
-        if ()
-
-    return puntos
-
-# PUNTOS
-# 3 ALIADAS 1 HUECO = 7
-# 2 ALIADAS 2 HUECOS = 4
-# 1 ALIADA 3 HUECOS = 1
-# CUALQUIER ENEMIGA = 0
-
-# 3 ENEMIGAS 1 HUECO = -1000
-# 2 ENEMIGAS 2 HUECOS = -7
-# 1 ENEMIGA 3 HUECOS = -4
-# CUALQUIER ALIADA = 0
+# suma puntos de las fichas en función del jugador
+def sumarPuntos(fichas, enemigas):
+    if (enemigas):
+        match fichas:
+            case 1:
+                return 3
+            case 2:
+                return 7
+            case 3: 
+                return 1000
+            case _:
+                return 0
+                
+    else:
+        match fichas:
+            case 1:
+                return 1
+            case 2:
+                return 3
+            case 3: 
+                return 7
+            case _:
+                return 0
