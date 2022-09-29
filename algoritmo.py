@@ -1,5 +1,7 @@
 from tablero import *
-import math
+
+iMinimax = 0
+iEvalua = 0
 
 # indica si es un nodo hoja por llegar al límite de profundidad o no quedan movimientos posibles
 def finArbol(tablero, profundidad):
@@ -36,13 +38,18 @@ def posiblesMovimientos(tablero):
 
 # llama al algoritmo que decide la jugada y devuelve la posición elegida
 def juega(tablero):
-    profundidad = 3
+    profundidad = 4
     mejorColumna = minimax(tablero, profundidad, False)[1]      
     fila = busca(tablero, mejorColumna)    
     
+    print("iteraciones minimax: ", iMinimax)
+    print("iteraciones evalua: ", iEvalua)    
+
     return fila, mejorColumna
     
-def minimax(tablero, profundidad, jugador):    
+def minimax(tablero, profundidad, jugador):  
+    global iMinimax
+    iMinimax += 1  
     fin = finArbol(tablero, profundidad)
     ganador = tablero.cuatroEnRaya()
     mejorColumna = 0
@@ -102,15 +109,17 @@ def minimax(tablero, profundidad, jugador):
     return puntuacionMejor, mejorColumna
 
 # evalua la situación global de ambos jugadores y devuelve una puntuación
-def evaluarSituacion(tablero, jugador):    
-    ficha = 2
+def evaluarSituacion(tablero, jugador):
+    global iEvalua
+    iEvalua += 1
+    fichaEnemiga = 1
     if (jugador):
-        ficha = 1
+        fichaEnemiga = 2
         
-    puntuacion = puntuacionVertical(tablero, ficha)
-    puntuacion += puntuacionHorizontal(tablero, ficha)
-    puntuacion += puntuacionDiagDcha(tablero, ficha)
-    puntuacion += puntuacionDiagIzda(tablero, ficha)
+    puntuacion = puntuacionVertical(tablero, fichaEnemiga)
+    puntuacion += puntuacionHorizontal(tablero, fichaEnemiga)
+    puntuacion += puntuacionDiagDcha(tablero, fichaEnemiga)
+    puntuacion += puntuacionDiagIzda(tablero, fichaEnemiga)
 
     if (jugador):
         return -puntuacion
@@ -118,23 +127,18 @@ def evaluarSituacion(tablero, jugador):
         return puntuacion
 
 # puntuacion de arriba a abajo por columnas            
-def puntuacionVertical(tablero, ficha):
+def puntuacionVertical(tablero, fichaEnemiga):
     puntuacion = 0
 
-    for fila in range(tablero.getAlto()-3):
-        for columna in range(tablero.getAncho()):
-            libres = 0
-            ocupadas = 0
-            enemigas = 0
-            for i in range(4):
-                if (tablero.getCelda(fila+i, columna) == 0):
-                    libres += 1
-                elif (tablero.getCelda(fila+i, columna) == ficha):
-                    ocupadas += 1
-                else:
-                    enemigas += 1
-            puntuacion += sumarPuntos(libres, ocupadas, enemigas)
-
+    for columna in range(tablero.getAncho()):
+        combinacion = []
+        for fila in range(tablero.getAlto()):
+            combinacion.append(tablero.getCelda(fila, columna))
+            puntuacion += sumarPuntos(combinacion, fichaEnemiga)
+            if (len(combinacion) == 4):
+                combinacion.pop(0)
+        combinacion.clear()
+            
     return puntuacion
 
 # puntuacion de izda a dcha por filas
@@ -197,22 +201,44 @@ def puntuacionDiagIzda(tablero, ficha):
             
     return puntuacion
 
+# Analiza la composición de la combinación de fichas
+def analizarCombinacion(combinacion, fichaEnemiga):
+    puntos = 0
+    aliadas = 0
+
+    for ficha in combinacion:
+        if ((ficha != fichaEnemiga) and (ficha != 0)):
+            aliadas += 1
+        elif (ficha == fichaEnemiga):
+            return 0
+
+    match aliadas:
+        case 1:
+            return 1
+        case 2:
+            return 3
+        case 3:
+            return 7
+    
+    return sumarPuntos(aliadas)
+
 # suma puntos en función de que posiciones del tablero están ocupadas y por qué jugador
-def sumarPuntos(libres, ocupadas, enemigas):
+def sumarPuntos(libres, aliadas, enemiga):
     puntos = 0
 
     # cuenta a adversario como ganador porque la siguiente jugada es suya
-    if (enemigas == 3 and libres == 1):
-        puntos = -1000
-    elif (enemigas == 2 and libres == 2):
-        puntos = -7
-    elif (enemigas ==1 and libres == 3):
-        puntos -4
-    elif (ocupadas == 3 and libres == 1):
-        puntos = 7
-    elif (ocupadas == 2 and libres == 2):
-        puntos = 4
-    elif (ocupadas == 1 and libres == 3):
-        puntos = 1
+    if (not enemiga):
+        if ()
 
     return puntos
+
+# PUNTOS
+# 3 ALIADAS 1 HUECO = 7
+# 2 ALIADAS 2 HUECOS = 4
+# 1 ALIADA 3 HUECOS = 1
+# CUALQUIER ENEMIGA = 0
+
+# 3 ENEMIGAS 1 HUECO = -1000
+# 2 ENEMIGAS 2 HUECOS = -7
+# 1 ENEMIGA 3 HUECOS = -4
+# CUALQUIER ALIADA = 0
