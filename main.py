@@ -33,7 +33,7 @@ def main():
                 #comprobar que es una posición válida
                 fila=busca(tablero, colDestino)
                 if fila!=-1:                    
-                    tablero.setCelda(fila, colDestino, 1)         
+                    tablero.setCelda(fila, colDestino, 1)  
                 else:
                     game_over = True
                     print ("error en jugada persona")  

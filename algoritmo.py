@@ -109,12 +109,9 @@ def evaluarSituacion(tablero, jugador):
         fichaEnemiga = 2
         
     puntuacion = puntuacionVertical(tablero, fichaEnemiga)
-    if math.isinf(puntuacion):
-        puntuacion += puntuacionHorizontal(tablero, fichaEnemiga)
-        if math.isinf(puntuacion):
-            puntuacion += puntuacionDiagAsc(tablero, fichaEnemiga)
-            if math.isinf(puntuacion):
-                puntuacion += puntuacionDiagDesc(tablero, fichaEnemiga)
+    puntuacion += puntuacionHorizontal(tablero, fichaEnemiga)
+    puntuacion += puntuacionDiagAsc(tablero, fichaEnemiga)
+    puntuacion += puntuacionDiagDesc(tablero, fichaEnemiga)
 
     if (jugador):
         return -puntuacion
@@ -160,7 +157,7 @@ def puntuacionHorizontal(tablero, fichaEnemiga):
             
     return puntuacion
 
-# puntuacion diagonal de izda a dcha por filas
+# puntuacion diagonal de izda a dcha ascendente
 def puntuacionDiagAsc(tablero, fichaEnemiga):
     puntuacion = 0
 
@@ -190,7 +187,7 @@ def puntuacionDiagAsc(tablero, fichaEnemiga):
             
     return puntuacion
 
-# puntuacion diagonal de dcha a izda por filas
+# puntuacion diagonal de izda a dcha descendente
 def puntuacionDiagDesc(tablero, fichaEnemiga):
     puntuacion = 0
 
