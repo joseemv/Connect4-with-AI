@@ -118,8 +118,8 @@ def evaluarSituacion(tablero, jugador):
         
     puntuacion = puntuacionVertical(tablero, fichaEnemiga)
     puntuacion += puntuacionHorizontal(tablero, fichaEnemiga)
-    puntuacion += puntuacionDiagDcha(tablero, fichaEnemiga)
-    puntuacion += puntuacionDiagIzda(tablero, fichaEnemiga)
+    puntuacion += puntuacionDiagAsc(tablero, fichaEnemiga)
+    puntuacion += puntuacionDiagDesc(tablero, fichaEnemiga)
 
     if (jugador):
         return -puntuacion
@@ -157,14 +157,14 @@ def puntuacionHorizontal(tablero, fichaEnemiga):
     return puntuacion
 
 # puntuacion diagonal de izda a dcha por filas
-def puntuacionDiagDcha(tablero, fichaEnemiga):
+def puntuacionDiagAsc(tablero, fichaEnemiga):
     puntuacion = 0
 
-    # parte superior (x/y <= 1)
+    # primera parte
     longDiagonal = 0
     for fila in range(3, tablero.getAlto()):
         combinacion = []
-        for columna in range(tablero.getAncho() - 4 + longDiagonal):
+        for columna in range(0, tablero.getAlto()-3 + longDiagonal):
             combinacion.append(tablero.getCelda(fila - columna, columna))
             if (len(combinacion) == 4):
                 puntuacion += analizarCombinacion(combinacion, fichaEnemiga)
@@ -172,12 +172,12 @@ def puntuacionDiagDcha(tablero, fichaEnemiga):
         combinacion.clear()
         longDiagonal += 1
 
-    # parte inferior (x/y > 1)
+    # segunda parte
     longDiagonal = 0
     for columna in range(1, tablero.getAncho() - 3):
         combinacion = []
-        for fila in range(tablero.getAlto(), 0 + longDiagonal, -1):
-            combinacion.append(tablero.getCelda(fila, columna + tablero.getAlto() - fila))
+        for fila in range(tablero.getAlto() -1, 0 + longDiagonal, -1):
+            combinacion.append(tablero.getCelda(fila, tablero.getAlto() - fila))
             if (len(combinacion) == 4):
                 puntuacion += analizarCombinacion(combinacion, fichaEnemiga)
                 combinacion.pop(0)
@@ -187,27 +187,27 @@ def puntuacionDiagDcha(tablero, fichaEnemiga):
     return puntuacion
 
 # puntuacion diagonal de dcha a izda por filas
-def puntuacionDiagIzda(tablero, fichaEnemiga):
+def puntuacionDiagDesc(tablero, fichaEnemiga):
     puntuacion = 0
 
-    # parte superior
-    longDiagonal = 0
-    for columna in range(3, tablero.getAncho() - 1):
+    # primera parte
+    longDiagonal = 1
+    for fila in range(0, tablero.getAlto() - 3):
         combinacion = []
-        for fila in range(tablero.getAlto(), 3 - longDiagonal):
-            combinacion.append(tablero.getCelda(fila, 1 + columna - tablero.getAlto() - fila))
+        for columna in range(0, tablero.getAncho() - longDiagonal):
+            combinacion.append(tablero.getCelda(fila + columna, columna))
             if (len(combinacion) == 4):
                 puntuacion += analizarCombinacion(combinacion, fichaEnemiga)
                 combinacion.pop(0)
         combinacion.clear()
         longDiagonal += 1
 
-    # parte inferior
+    # segunda parte
     longDiagonal = 0
-    for fila in range(tablero.getAlto(), 3, -1):
+    for columna in range(1, tablero.getAncho() -3):
         combinacion = []
-        for columna in range(tablero.getAncho(), 0 + longDiagonal, -1):
-            combinacion.append(tablero.getCelda(columna - longDiagonal, columna))
+        for fila in range(tablero.getAncho() - longDiagonal):
+            combinacion.append(tablero.getCelda(fila, columna + fila))
             if (len(combinacion) == 4):
                 puntuacion += analizarCombinacion(combinacion, fichaEnemiga)
                 combinacion.pop(0)
