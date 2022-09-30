@@ -1,7 +1,5 @@
 from tablero import *
-
-iMinimax = 0
-iEvalua = 0
+import math
 
 # indica si es un nodo hoja por llegar al límite de profundidad o no quedan movimientos posibles
 def finArbol(tablero, profundidad):
@@ -40,16 +38,11 @@ def posiblesMovimientos(tablero):
 def juega(tablero):
     profundidad = 4
     mejorColumna = minimax(tablero, profundidad, False)[1]      
-    fila = busca(tablero, mejorColumna)    
-    
-    print("iteraciones minimax: ", iMinimax)
-    print("iteraciones evalua: ", iEvalua)    
+    fila = busca(tablero, mejorColumna) 
 
     return fila, mejorColumna
     
-def minimax(tablero, profundidad, jugador):  
-    global iMinimax
-    iMinimax += 1  
+def minimax(tablero, profundidad, jugador):
     fin = finArbol(tablero, profundidad)
     ganador = tablero.cuatroEnRaya()
     mejorColumna = 0
@@ -58,7 +51,8 @@ def minimax(tablero, profundidad, jugador):
     if (fin or ganador != 0):
         # gana jugador
         if (ganador == 1):
-            puntuacionMejor = -float("inf")
+            # si devuelve -infinito no podrá elegir entre dos jugadas que conduzcan a la derrota
+            puntuacionMejor = -100000000
         # gana máquina
         elif (ganador == 2):
             puntuacionMejor = float("inf")
@@ -72,7 +66,7 @@ def minimax(tablero, profundidad, jugador):
         # solo devuelve puntuación porque solo importa la posición elegida por la raíz
         return puntuacionMejor, None
 
-    # se inicializa la 
+    # se inicializa la puntuación a valor infinito para que cualquier jugada posible sea mejor
     if (jugador):
         puntuacionMejor = float("inf")
     else:
@@ -108,31 +102,35 @@ def minimax(tablero, profundidad, jugador):
     # devolverá la puntuación a nodos hijos para recordar la rama que les beneficie y la mejor columna a la raíz para así tomar la decisión
     return puntuacionMejor, mejorColumna
 
-# evalua la situación global de ambos jugadores y devuelve una puntuación
+# evalúa la situación global de ambos jugadores y devuelve una puntuación
 def evaluarSituacion(tablero, jugador):
-    global iEvalua
-    iEvalua += 1
     fichaEnemiga = 1
     if (jugador):
         fichaEnemiga = 2
         
     puntuacion = puntuacionVertical(tablero, fichaEnemiga)
-    puntuacion += puntuacionHorizontal(tablero, fichaEnemiga)
-    puntuacion += puntuacionDiagAsc(tablero, fichaEnemiga)
-    puntuacion += puntuacionDiagDesc(tablero, fichaEnemiga)
+    if math.isinf(puntuacion):
+        puntuacion += puntuacionHorizontal(tablero, fichaEnemiga)
+        if math.isinf(puntuacion):
+            puntuacion += puntuacionDiagAsc(tablero, fichaEnemiga)
+            if math.isinf(puntuacion):
+                puntuacion += puntuacionDiagDesc(tablero, fichaEnemiga)
 
     if (jugador):
         return -puntuacion
     else:
         return puntuacion
 
-# puntuacion de arriba a abajo por columnas            
+# puntuacion de abajo hacia arriba por columnas         
 def puntuacionVertical(tablero, fichaEnemiga):
     puntuacion = 0
 
     for columna in range(tablero.getAncho()):
         combinacion = []
-        for fila in range(tablero.getAlto()):
+        for fila in range(tablero.getAlto()-1, 0, -1):
+            # si encuentra una celda vacía no tiene sentido seguir buscando arriba
+            if (tablero.estaVacia(fila, columna)):
+                break
             combinacion.append(tablero.getCelda(fila, columna))
             if (len(combinacion) == 4):
                 puntuacion += analizarCombinacion(combinacion, fichaEnemiga)
@@ -145,14 +143,20 @@ def puntuacionVertical(tablero, fichaEnemiga):
 def puntuacionHorizontal(tablero, fichaEnemiga):
     puntuacion = 0
 
-    for fila in range(tablero.getAlto()):
+    for fila in range(tablero.getAlto()-1, 0, -1):
+        vacias = 0
         combinacion = []
         for columna in range(tablero.getAncho()):
+            if (tablero.estaVacia(fila, columna)):
+                vacias += 1
             combinacion.append(tablero.getCelda(fila, columna))
             if (len(combinacion) == 4):
                 puntuacion += analizarCombinacion(combinacion, fichaEnemiga)
                 combinacion.pop(0)
         combinacion.clear()
+        # si una fila completa está vacía no tiene sentido seguir buscando por encima
+        if (vacias == tablero.getAncho()):
+            break
             
     return puntuacion
 
@@ -194,7 +198,7 @@ def puntuacionDiagDesc(tablero, fichaEnemiga):
     longDiagonal = 1
     for fila in range(0, tablero.getAlto() - 3):
         combinacion = []
-        for columna in range(0, tablero.getAncho() - longDiagonal):
+        for columna in range(0, tablero.getAncho() - 1 - longDiagonal):
             combinacion.append(tablero.getCelda(fila + columna, columna))
             if (len(combinacion) == 4):
                 puntuacion += analizarCombinacion(combinacion, fichaEnemiga)
@@ -206,7 +210,7 @@ def puntuacionDiagDesc(tablero, fichaEnemiga):
     longDiagonal = 0
     for columna in range(1, tablero.getAncho() -3):
         combinacion = []
-        for fila in range(tablero.getAncho() - longDiagonal):
+        for fila in range(tablero.getAncho() - 1 - longDiagonal):
             combinacion.append(tablero.getCelda(fila, columna + fila))
             if (len(combinacion) == 4):
                 puntuacion += analizarCombinacion(combinacion, fichaEnemiga)
