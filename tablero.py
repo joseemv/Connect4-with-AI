@@ -42,6 +42,12 @@ class Tablero:
     # val: 0=vacio, 1=persona, 2=maquina
     def setCelda(self, fila, col, val):
         self.tablero[fila][col]=val    
+
+    def estaVacia(self, fila, columna):
+        if (self.tablero[fila][columna] == 0):
+            return True
+        else:
+            return False
     
     # detecta si hay cuatro fichas en línea y devuelve el ganador
     def cuatroEnRaya(self):
