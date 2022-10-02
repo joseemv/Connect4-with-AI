@@ -85,19 +85,17 @@ def busca(tablero, columna):
 
 # indica si es un nodo hoja por llegar al límite de profundidad o no quedan movimientos posibles
 def finArbol(tablero, profundidad):
-    if (profundidad == 0 or posiblesMovimientos(tablero) == 0):
+    if (profundidad == 0 or not jugadaPosible(tablero)):
         return True
     return False
 
 # devuelve número de columnas disponibles para la siguiente jugada
-def posiblesMovimientos(tablero):
-    opciones = 0
-    
+def jugadaPosible(tablero):    
     for columna in range(tablero.getAncho()):
         if (busca(tablero, columna) != -1):
-            opciones += 1
+            return True
 
-    return opciones
+    return False
 
 # devuelve un jugador si ha ganado o 0 si no
 def jugadaGanadora(tablero, fila, columna):
@@ -239,8 +237,8 @@ def evaluarSituacion(tablero, jugador):
         
     puntuacion = puntuacionVertical(tablero, fichaEnemiga)
     puntuacion += puntuacionHorizontal(tablero, fichaEnemiga)
-    puntuacion += puntuacionDiagAsc(tablero, fichaEnemiga)
-    puntuacion += puntuacionDiagDesc(tablero, fichaEnemiga)
+    puntuacion += puntuacionDiagDcha(tablero, fichaEnemiga)
+    puntuacion += puntuacionDiagIzda(tablero, fichaEnemiga)
 
     return puntuacion
 
@@ -297,16 +295,16 @@ def puntuacionHorizontal(tablero, fichaEnemiga):
     return puntuacion
 
 # puntuacion diagonal de izda a dcha descendente
-def puntuacionDiagAsc(tablero, fichaEnemiga):
+def puntuacionDiagDcha(tablero, fichaEnemiga):
     puntuacion = 0
 
     for fila in range(tablero.getAlto() - 3):
-        for columna in range(3, tablero.getAncho()):
+        for columna in range(tablero.getAncho() - 3):
             vacias = 0
             enemigas = 0
             aliadas = 0
             for posicion in range(4):
-                ficha = tablero.getCelda(fila + posicion, columna - posicion)
+                ficha = tablero.getCelda(fila + posicion, columna + posicion)
                 if (ficha == 0):
                     vacias += 1
                 elif (ficha == fichaEnemiga):
@@ -317,17 +315,17 @@ def puntuacionDiagAsc(tablero, fichaEnemiga):
 
     return puntuacion
 
-# puntuacion diagonal de izda a dcha ascendente
-def puntuacionDiagDesc(tablero, fichaEnemiga):
+# puntuacion diagonal de dcha a izda descendente
+def puntuacionDiagIzda(tablero, fichaEnemiga):
     puntuacion = 0
 
     for fila in range(tablero.getAlto() - 3):
-        for columna in range(tablero.getAncho() - 3):
+        for columna in range(3, tablero.getAncho()):
             vacias = 0
             enemigas = 0
             aliadas = 0
             for posicion in range(4):
-                ficha = tablero.getCelda(fila + posicion, columna + posicion)
+                ficha = tablero.getCelda(fila + posicion, columna - posicion)
                 if (ficha == 0):
                     vacias += 1
                 elif (ficha == fichaEnemiga):
