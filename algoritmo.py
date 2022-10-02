@@ -23,7 +23,7 @@ def busca(tablero, col):
             
     return i
 
-# devuelve número de columnas disponibles para la siguiente jugada
+# devuelve número de columnas disponibles para la siguiente jugadaq
 def posiblesMovimientos(tablero):
     opciones = 0
     
@@ -32,20 +32,6 @@ def posiblesMovimientos(tablero):
             opciones += 1
     return opciones
 
-<<<<<<< Updated upstream
-# llama al algoritmo que decide la jugada
-def juega(tablero):
-    profundidad = 3
-    mejorColumna = minimax(tablero, profundidad, False)[1]      
-    fila = busca(tablero, mejorColumna)    
-    
-    return fila, mejorColumna
-    
-def minimax(tablero, profundidad, jugador):    
-    fin = finArbol(tablero, profundidad)
-    ganador = tablero.cuatroEnRaya()
-    puntuacionMejor = 0
-=======
 def jugadaGanadora(tablero, fila, columna):
     if ((fila is not None) and (columna is not None)):
         ultimoJugador = tablero.getCelda(fila, columna)
@@ -184,7 +170,6 @@ def juega(tablero):
 def minimax(tablero, profundidad, jugador, filaAnterior, columnaAnterior):
     fin = finArbol(tablero, profundidad)
     ganador = jugadaGanadora(tablero, filaAnterior, columnaAnterior)
->>>>>>> Stashed changes
     mejorColumna = 0
     
     # gana alguien, empate o límite de  profunidad
@@ -220,28 +205,18 @@ def minimax(tablero, profundidad, jugador, filaAnterior, columnaAnterior):
             # juega persona MIN
             if (jugador):
                 simulacionTablero.setCelda(fila, columna, 1)
-<<<<<<< Updated upstream
-                # recibe la mejor puntuación de las siguientes jugadas
-                puntuacionActual = minimax(simulacionTablero, profundidad-1, False)[0]
-                # si la puntuación es mejor que las anteriores se guarda la columna
-=======
                 # recibe la menor puntuación de las siguientes jugadas
                 puntuacionActual = minimax(simulacionTablero, profundidad-1, False, fila, columna)[0]
                 # si la puntuación es menor que las anteriores se guarda junto a la columna
->>>>>>> Stashed changes
                 if (puntuacionActual < puntuacionMejor):
                     puntuacionMejor = puntuacionActual
                     mejorColumna = columna
             # juega máquina MAX
             else:
                 simulacionTablero.setCelda(fila, columna, 2)
-<<<<<<< Updated upstream
-                puntuacionActual = minimax(simulacionTablero, profundidad-1, True)[0]
-=======
                 # recibe la mayor puntuación de las siguientes jugadas
                 puntuacionActual = minimax(simulacionTablero, profundidad-1, True, fila, columna)[0]
                 # si la puntuación es mayor que las anteriores se guarda junto a la columna
->>>>>>> Stashed changes
                 if (puntuacionActual > puntuacionMejor):
                     puntuacionMejor = puntuacionActual
                     mejorColumna = columna
