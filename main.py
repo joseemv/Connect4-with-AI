@@ -1,4 +1,5 @@
 import sys, pygame
+from time import sleep
 from tablero import *
 from algoritmo import *
 from pygame.locals import *
@@ -47,6 +48,18 @@ def main():
                         game_over=True
                         print ("gana máquina")
 
+        # posicion = juega(tablero, 1)
+        # tablero.setCelda(posicion[0], posicion[1], 1)
+        # if tablero.cuatroEnRaya()==1:
+        #     game_over=True
+        #     print ("gana persona roja")               
+        # else:  #si la persona no ha ganado, juega la máquina
+        #     posicion = juega(tablero, 2)
+        #     tablero.setCelda(posicion[0], posicion[1], 2)
+        #     if tablero.cuatroEnRaya()==2:
+        #         game_over=True
+        #         print ("gana máquina amarilla")
+        
         #código de dibujo        
         #limpiar pantalla
         screen.fill(NEGRO)
@@ -68,6 +81,7 @@ def main():
         reloj.tick(40)
         if game_over==True: #retardo cuando gana
             pygame.time.delay(1500)
+        # sleep(2)
     
     pygame.quit()
  

@@ -8,7 +8,7 @@ def juega(tablero, jugador):
 
 # algoritmo minimax para decidir jugada óptima  
 def minimax(tablero, profundidad, jugador):
-    posicion = [0] * 2
+    posicion = [None] * 2
 
     # se inicializa la puntuación a valor infinito para que cualquier jugada posible sea mejor
     alfa = float("-inf")
@@ -27,16 +27,16 @@ def minimax(tablero, profundidad, jugador):
                 posicion[0] = fila
                 posicion[1] = columna
 
-    # devolverá la mejor columna a la raíz para así tomar la decisión
+    # devolverá la mejor columna para así tomar la decisión
     return posicion
 
 # MIN será el oponente del jugador que invoque el algoritmo
 def juegaMin(tablero, profundidad, alfa, beta, filaAnterior, columnaAnterior, jugadorEnemigo):
     # comprueba si se debe de ejecutar la función de evaluación
-    resultadoHoja = esHoja(tablero, profundidad, filaAnterior, columnaAnterior, jugadorEnemigo)
+    resultadoHoja = esHoja(tablero, profundidad, filaAnterior, columnaAnterior)
     # evalúa la situación del nodo anterior, que es el oponente de MIN
     if (resultadoHoja > 0):
-        return -funcionEvaluacion(tablero, resultadoHoja, jugadorEnemigo)
+        return funcionEvaluacion(tablero, resultadoHoja, jugadorEnemigo)
 
     if (jugadorEnemigo == 1):
         jugador = 2
@@ -61,9 +61,9 @@ def juegaMin(tablero, profundidad, alfa, beta, filaAnterior, columnaAnterior, ju
 # MAX será el jugador que invoque el algoritmo
 def juegaMax(tablero, profundidad, alfa, beta, filaAnterior, columnaAnterior, jugadorEnemigo):
     # comprueba si se debe de ejecutar la función de evaluación
-    resultadoHoja = esHoja(tablero, profundidad, filaAnterior, columnaAnterior, jugadorEnemigo)
+    resultadoHoja = esHoja(tablero, profundidad, filaAnterior, columnaAnterior)
     if (resultadoHoja > 0):
-        return funcionEvaluacion(tablero, resultadoHoja, jugadorEnemigo)
+        return -funcionEvaluacion(tablero, resultadoHoja, jugadorEnemigo)
 
     if (jugadorEnemigo == 1):
         jugador = 2
@@ -97,16 +97,13 @@ def busca(tablero, columna):
     return ultimaFila   
 
 # indica si es un nodo hoja por llegar al límite de profundidad o no quedan movimientos posibles
-def esHoja(tablero, profundidad, fila, columna, jugador):
-    if ((columna is not None) and (columna is not None)):
-        if derrota(tablero, fila, columna, jugador):
-            return 1
-        elif (not jugadaPosible(tablero)):
-            return 2
-        elif (profundidad == 0):
-            return 3
-        else:
-            return -1
+def esHoja(tablero, profundidad, fila, columna):
+    if victoria(tablero, fila, columna):
+        return 1
+    elif (not jugadaPosible(tablero)):
+        return 2
+    elif (profundidad == 0):
+        return 3
     else:
         return -1
 
@@ -119,19 +116,19 @@ def jugadaPosible(tablero):
     return False
 
 # devuelve un jugador si ha ganado o 0 si no
-def derrota(tablero, fila, columna, jugador):
+def victoria(tablero, fila, columna):
     if (combinacionHorizontal(tablero, fila, columna)):
-        return jugador
+        return True
     else:
         if (combinacionVertical(tablero, fila, columna)):
-            return jugador
+            return True
         else:
             if (combinacionDiagAsc(tablero, fila, columna)):
-                return jugador
+                return True
             else:
                 if (combinacionDiagDesc(tablero, fila, columna)):
-                    return jugador
-    return 0
+                    return True
+    return False
 
 # devuelve true si hay victoria en horizontal
 def combinacionHorizontal(tablero, fila, columna):
@@ -221,28 +218,28 @@ def combinacionDiagDesc(tablero, fila, columna):
                         
     return False
 
-def funcionEvaluacion(tablero, resultadoHoja, jugadorEnemigo):
-    # gana enemigo
+def funcionEvaluacion(tablero, resultadoHoja, jugador):
+    # gana jugador
     if (resultadoHoja == 1):
-        return -100000
+        return 100000
     # empate
     elif (resultadoHoja == 2):
         return 0
     # límite profundidad
     elif (resultadoHoja == 3):
-        return evaluarSituacion(tablero, jugadorEnemigo)
+        return evaluarSituacion(tablero, jugador)
 
 # evalúa la situación global de ambos jugadores y devuelve una puntuación
-def evaluarSituacion(tablero, jugadorEnemigo):
-    puntuacion = puntuacionVertical(tablero, jugadorEnemigo)
-    puntuacion += puntuacionHorizontal(tablero, jugadorEnemigo)
-    puntuacion += puntuacionDiagDcha(tablero, jugadorEnemigo)
-    puntuacion += puntuacionDiagIzda(tablero, jugadorEnemigo)
+def evaluarSituacion(tablero, jugador):
+    puntuacion = puntuacionVertical(tablero, jugador)
+    puntuacion += puntuacionHorizontal(tablero, jugador)
+    puntuacion += puntuacionDiagDcha(tablero, jugador)
+    puntuacion += puntuacionDiagIzda(tablero, jugador)
 
     return puntuacion
 
 # puntuacion de abajo hacia arriba por columnas         
-def puntuacionVertical(tablero, jugadorEnemigo):
+def puntuacionVertical(tablero, jugador):
     puntuacion = 0
 
     for columna in range(tablero.getAncho()):
@@ -257,16 +254,16 @@ def puntuacionVertical(tablero, jugadorEnemigo):
                 ficha = tablero.getCelda(filaActual, columna)
                 if (ficha == 0):
                     vacias += 1
-                elif (ficha == jugadorEnemigo):
-                    enemigas += 1
-                else:
+                elif (ficha == jugador):
                     aliadas += 1
-            puntuacion += sumarPuntos(vacias, enemigas, aliadas)
+                else:
+                    enemigas += 1
+            puntuacion += sumarPuntos(vacias, aliadas, enemigas)
             
     return puntuacion
 
 # puntuacion de izda a dcha por filas
-def puntuacionHorizontal(tablero, jugadorEnemigo):
+def puntuacionHorizontal(tablero, jugador):
     puntuacion = 0
 
     for fila in range(tablero.getAlto()-1, 0, -1):
@@ -279,11 +276,11 @@ def puntuacionHorizontal(tablero, jugadorEnemigo):
                 ficha = tablero.getCelda(fila, columnaActual)
                 if (ficha == 0):
                     vacias += 1
-                elif (ficha == jugadorEnemigo):
-                    enemigas += 1
-                else:
+                elif (ficha == jugador):
                     aliadas += 1
-            puntuacion += sumarPuntos(vacias, enemigas, aliadas)
+                else:
+                    enemigas += 1
+            puntuacion += sumarPuntos(vacias, aliadas, enemigas)
 
             if (tablero.getCelda(fila, columna) == 0):
                 columnasVacias += 1
@@ -294,7 +291,7 @@ def puntuacionHorizontal(tablero, jugadorEnemigo):
     return puntuacion
 
 # puntuacion diagonal de izda a dcha descendente
-def puntuacionDiagDcha(tablero, jugadorEnemigo):
+def puntuacionDiagDcha(tablero, jugador):
     puntuacion = 0
 
     for fila in range(tablero.getAlto() - 3):
@@ -306,16 +303,16 @@ def puntuacionDiagDcha(tablero, jugadorEnemigo):
                 ficha = tablero.getCelda(fila + posicion, columna + posicion)
                 if (ficha == 0):
                     vacias += 1
-                elif (ficha == jugadorEnemigo):
+                elif (ficha == jugador):
                     enemigas += 1
                 else:
                     aliadas += 1
-            puntuacion += sumarPuntos(vacias, enemigas, aliadas)
+            puntuacion += sumarPuntos(vacias, aliadas, enemigas)
 
     return puntuacion
 
 # puntuacion diagonal de dcha a izda descendente
-def puntuacionDiagIzda(tablero, jugadorEnemigo):
+def puntuacionDiagIzda(tablero, jugador):
     puntuacion = 0
 
     for fila in range(tablero.getAlto() - 3):
@@ -327,16 +324,16 @@ def puntuacionDiagIzda(tablero, jugadorEnemigo):
                 ficha = tablero.getCelda(fila + posicion, columna - posicion)
                 if (ficha == 0):
                     vacias += 1
-                elif (ficha == jugadorEnemigo):
-                    enemigas += 1
-                else:
+                elif (ficha == jugador):
                     aliadas += 1
-            puntuacion += sumarPuntos(vacias, enemigas, aliadas)
+                else:
+                    enemigas += 1
+            puntuacion += sumarPuntos(vacias, aliadas, enemigas)
 
     return puntuacion
 
 # suma puntos de las fichas en función del jugador
-def sumarPuntos(vacias, enemigas, aliadas):
+def sumarPuntos(vacias, aliadas, enemigas):
     # puntos enemigo
     if (enemigas > 0 and aliadas == 0):
         if (enemigas == 3 and vacias == 1):
