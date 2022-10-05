@@ -1,82 +1,87 @@
 from tablero import *
 
 # llama al algoritmo que decide la jugada y devuelve la posición elegida
-def juega(tablero):
-    profundidad = 6
-    mejorColumna = minimax(tablero, profundidad, float("-inf"), float("inf"), False, None, None)[1]      
-    fila = busca(tablero, mejorColumna) 
+def juega(tablero, jugador):
+    profundidad = 5
 
-    return fila, mejorColumna
+    return minimax(tablero, profundidad, jugador)
 
 # algoritmo minimax para decidir jugada óptima  
-def minimax(tablero, profundidad, alfa, beta, jugador, filaAnterior, columnaAnterior):
-    fin = finArbol(tablero, profundidad)
-    ganador = jugadaGanadora(tablero, filaAnterior, columnaAnterior)
-    mejorColumna = 0
-    
-    # gana alguien, empate o límite de  profunidad
-    if (fin or ganador != 0):
-        # gana jugador
-        if (ganador == 1):
-            # si devuelve -infinito no podrá elegir entre dos jugadas que conduzcan a la derrota
-            puntuacionMejor = -100000000
-        # gana máquina
-        elif (ganador == 2):
-            puntuacionMejor = 100000000
-        # límite profundidad
-        elif (profundidad == 0):
-            puntuacionMejor = evaluarSituacion(tablero, jugador)
-        # empate
-        else:
-            puntuacionMejor = 0
-
-        # solo devuelve puntuación porque solo importa la posición elegida por la raíz
-        return puntuacionMejor, None
+def minimax(tablero, profundidad, jugador):
+    posicion = [0] * 2
 
     # se inicializa la puntuación a valor infinito para que cualquier jugada posible sea mejor
-    if (jugador):
-        puntuacionMejor = float("inf")
-    else:
-        puntuacionMejor = -float("inf")
-
-    # genera nodos en función de las jugadas posibles  
+    alfa = float("-inf")
+    beta = float("inf")
+ 
+    # genera nodos en función de las jugadas posibles 
     for columna in range(tablero.getAncho()):        
         fila = busca(tablero, columna)
         # si hay huecos en la columna
         if fila != -1:
-            # genera copia del tablero para simular las jugadas
             simulacionTablero = Tablero(tablero)
+            simulacionTablero.setCelda(fila, columna, jugador)
+            puntuacionActual = juegaMin(simulacionTablero, profundidad-1, alfa, beta, fila, columna, jugador)
+            if (puntuacionActual > alfa):
+                alfa = puntuacionActual
+                posicion[0] = fila
+                posicion[1] = columna
 
-            # juega jugador MIN
-            if (jugador):
-                puntuacionActual = float("inf")
-                if (alfa < beta):
-                    simulacionTablero.setCelda(fila, columna, 1)
-                    # recibe la menor puntuación de las siguientes jugadas
-                    puntuacionActual = minimax(simulacionTablero, profundidad-1, alfa, beta, False, fila, columna)[0]
-                    # si la puntuación es menor que las anteriores se guarda junto a la columna
-                    if (puntuacionActual < puntuacionMejor):
-                        puntuacionMejor = puntuacionActual
-                        mejorColumna = columna
-                if (puntuacionActual < beta):
-                    beta = puntuacionActual
+    # devolverá la mejor columna a la raíz para así tomar la decisión
+    return posicion
 
-            # juega máquina MAX
-            else:
-                puntuacionActual = float("-inf")
-                if (alfa < beta):
-                    simulacionTablero.setCelda(fila, columna, 2)
-                    # recibe la mayor puntuación de las siguientes jugadas
-                    puntuacionActual = minimax(simulacionTablero, profundidad-1, alfa, beta, True, fila, columna)[0]
-                    # si la puntuación es mayor que las anteriores se guarda junto a la columna
-                    if (puntuacionActual > puntuacionMejor):
-                        puntuacionMejor = puntuacionActual
-                        mejorColumna = columna
-                    if (puntuacionActual > alfa):
-                        alfa = puntuacionActual
+# MIN será el oponente del jugador que invoque el algoritmo
+def juegaMin(tablero, profundidad, alfa, beta, filaAnterior, columnaAnterior, jugadorEnemigo):
+    # comprueba si se debe de ejecutar la función de evaluación
+    resultadoHoja = esHoja(tablero, profundidad, filaAnterior, columnaAnterior, jugadorEnemigo)
+    # evalúa la situación del nodo anterior, que es el oponente de MIN
+    if (resultadoHoja > 0):
+        return -funcionEvaluacion(tablero, resultadoHoja, jugadorEnemigo)
 
-    # devolverá la puntuación a nodos hijos para recordar la rama que les beneficie y la mejor columna a la raíz para así tomar la decisión
-    return puntuacionMejor, mejorColumna
+    if (jugadorEnemigo == 1):
+        jugador = 2
+    else:
+        jugador = 1
+
+    # calcula los siguientes movimientos de MIN
+    for columna in range(tablero.getAncho()):
+        fila = busca(tablero, columna)
+        # si hay huecos en la columna
+        if (fila != -1):
+            simulacionTablero = Tablero(tablero)
+            simulacionTablero.setCelda(fila, columna, jugador)
+            # actualiza beta para cada nodo MAX siguiente
+            beta = min(beta, juegaMax(simulacionTablero, profundidad-1, alfa, beta, fila, columna, jugador))
+            # no interesa seguir buscando porque no elegirá este nodo
+            if (alfa >= beta):
+                break
+
+    return beta
+
+# MAX será el jugador que invoque el algoritmo
+def juegaMax(tablero, profundidad, alfa, beta, filaAnterior, columnaAnterior, jugadorEnemigo):
+    # comprueba si se debe de ejecutar la función de evaluación
+    resultadoHoja = esHoja(tablero, profundidad, filaAnterior, columnaAnterior, jugadorEnemigo)
+    if (resultadoHoja > 0):
+        return funcionEvaluacion(tablero, resultadoHoja, jugadorEnemigo)
+
+    if (jugadorEnemigo == 1):
+        jugador = 2
+    else:
+        jugador = 1
+
+    for columna in range(tablero.getAncho()):
+        fila = busca(tablero, columna)
+        if (fila != -1):
+            simulacionTablero = Tablero(tablero)
+            simulacionTablero.setCelda(fila, columna, jugador)
+            # actualiza alfa para cada nodo MIN siguiente
+            alfa = max(alfa, juegaMin(simulacionTablero, profundidad-1, alfa, beta, fila, columna, jugador))
+            # no interesa seguir buscando porque no elegirá este nodo
+            if (alfa >= beta):
+                break
+
+    return alfa
 
 # devuelve la primer fila vacía de la columna indicada o -1 si están todas ocupadas
 def busca(tablero, columna):
@@ -92,10 +97,18 @@ def busca(tablero, columna):
     return ultimaFila   
 
 # indica si es un nodo hoja por llegar al límite de profundidad o no quedan movimientos posibles
-def finArbol(tablero, profundidad):
-    if (profundidad == 0 or not jugadaPosible(tablero)):
-        return True
-    return False
+def esHoja(tablero, profundidad, fila, columna, jugador):
+    if ((columna is not None) and (columna is not None)):
+        if derrota(tablero, fila, columna, jugador):
+            return 1
+        elif (not jugadaPosible(tablero)):
+            return 2
+        elif (profundidad == 0):
+            return 3
+        else:
+            return -1
+    else:
+        return -1
 
 # devuelve número de columnas disponibles para la siguiente jugada
 def jugadaPosible(tablero):    
@@ -106,20 +119,18 @@ def jugadaPosible(tablero):
     return False
 
 # devuelve un jugador si ha ganado o 0 si no
-def jugadaGanadora(tablero, fila, columna):
-    if ((fila is not None) and (columna is not None)):
-        ultimoJugador = tablero.getCelda(fila, columna)
-        if (combinacionHorizontal(tablero, fila, columna)):
-            return ultimoJugador
+def derrota(tablero, fila, columna, jugador):
+    if (combinacionHorizontal(tablero, fila, columna)):
+        return jugador
+    else:
+        if (combinacionVertical(tablero, fila, columna)):
+            return jugador
         else:
-            if (combinacionVertical(tablero, fila, columna)):
-                return ultimoJugador
+            if (combinacionDiagAsc(tablero, fila, columna)):
+                return jugador
             else:
-                if (combinacionDiagAsc(tablero, fila, columna)):
-                    return ultimoJugador
-                else:
-                    if (combinacionDiagDesc(tablero, fila, columna)):
-                        return ultimoJugador
+                if (combinacionDiagDesc(tablero, fila, columna)):
+                    return jugador
     return 0
 
 # devuelve true si hay victoria en horizontal
@@ -210,21 +221,28 @@ def combinacionDiagDesc(tablero, fila, columna):
                         
     return False
 
+def funcionEvaluacion(tablero, resultadoHoja, jugadorEnemigo):
+    # gana enemigo
+    if (resultadoHoja == 1):
+        return -100000
+    # empate
+    elif (resultadoHoja == 2):
+        return 0
+    # límite profundidad
+    elif (resultadoHoja == 3):
+        return evaluarSituacion(tablero, jugadorEnemigo)
+
 # evalúa la situación global de ambos jugadores y devuelve una puntuación
-def evaluarSituacion(tablero, jugador):
-    fichaEnemiga = 1
-    if (jugador):
-        fichaEnemiga = 2
-        
-    puntuacion = puntuacionVertical(tablero, fichaEnemiga)
-    puntuacion += puntuacionHorizontal(tablero, fichaEnemiga)
-    puntuacion += puntuacionDiagDcha(tablero, fichaEnemiga)
-    puntuacion += puntuacionDiagIzda(tablero, fichaEnemiga)
+def evaluarSituacion(tablero, jugadorEnemigo):
+    puntuacion = puntuacionVertical(tablero, jugadorEnemigo)
+    puntuacion += puntuacionHorizontal(tablero, jugadorEnemigo)
+    puntuacion += puntuacionDiagDcha(tablero, jugadorEnemigo)
+    puntuacion += puntuacionDiagIzda(tablero, jugadorEnemigo)
 
     return puntuacion
 
 # puntuacion de abajo hacia arriba por columnas         
-def puntuacionVertical(tablero, fichaEnemiga):
+def puntuacionVertical(tablero, jugadorEnemigo):
     puntuacion = 0
 
     for columna in range(tablero.getAncho()):
@@ -239,7 +257,7 @@ def puntuacionVertical(tablero, fichaEnemiga):
                 ficha = tablero.getCelda(filaActual, columna)
                 if (ficha == 0):
                     vacias += 1
-                elif (ficha == fichaEnemiga):
+                elif (ficha == jugadorEnemigo):
                     enemigas += 1
                 else:
                     aliadas += 1
@@ -248,7 +266,7 @@ def puntuacionVertical(tablero, fichaEnemiga):
     return puntuacion
 
 # puntuacion de izda a dcha por filas
-def puntuacionHorizontal(tablero, fichaEnemiga):
+def puntuacionHorizontal(tablero, jugadorEnemigo):
     puntuacion = 0
 
     for fila in range(tablero.getAlto()-1, 0, -1):
@@ -261,7 +279,7 @@ def puntuacionHorizontal(tablero, fichaEnemiga):
                 ficha = tablero.getCelda(fila, columnaActual)
                 if (ficha == 0):
                     vacias += 1
-                elif (ficha == fichaEnemiga):
+                elif (ficha == jugadorEnemigo):
                     enemigas += 1
                 else:
                     aliadas += 1
@@ -276,7 +294,7 @@ def puntuacionHorizontal(tablero, fichaEnemiga):
     return puntuacion
 
 # puntuacion diagonal de izda a dcha descendente
-def puntuacionDiagDcha(tablero, fichaEnemiga):
+def puntuacionDiagDcha(tablero, jugadorEnemigo):
     puntuacion = 0
 
     for fila in range(tablero.getAlto() - 3):
@@ -288,7 +306,7 @@ def puntuacionDiagDcha(tablero, fichaEnemiga):
                 ficha = tablero.getCelda(fila + posicion, columna + posicion)
                 if (ficha == 0):
                     vacias += 1
-                elif (ficha == fichaEnemiga):
+                elif (ficha == jugadorEnemigo):
                     enemigas += 1
                 else:
                     aliadas += 1
@@ -297,7 +315,7 @@ def puntuacionDiagDcha(tablero, fichaEnemiga):
     return puntuacion
 
 # puntuacion diagonal de dcha a izda descendente
-def puntuacionDiagIzda(tablero, fichaEnemiga):
+def puntuacionDiagIzda(tablero, jugadorEnemigo):
     puntuacion = 0
 
     for fila in range(tablero.getAlto() - 3):
@@ -309,7 +327,7 @@ def puntuacionDiagIzda(tablero, fichaEnemiga):
                 ficha = tablero.getCelda(fila + posicion, columna - posicion)
                 if (ficha == 0):
                     vacias += 1
-                elif (ficha == fichaEnemiga):
+                elif (ficha == jugadorEnemigo):
                     enemigas += 1
                 else:
                     aliadas += 1
