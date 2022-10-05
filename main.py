@@ -39,12 +39,14 @@ def main():
                     game_over = True
                     print ("error en jugada persona")  
                 if tablero.cuatroEnRaya()==1:
+                    sleep(100)
                     game_over=True
-                    print ("gana persona")               
+                    print ("gana persona")
                 else:  #si la persona no ha ganado, juega la máquina
                     posicion = juega(tablero, 2)
                     tablero.setCelda(posicion[0], posicion[1], 2)
                     if tablero.cuatroEnRaya()==2:
+                        sleep(100)
                         game_over=True
                         print ("gana máquina")
 
@@ -59,7 +61,7 @@ def main():
         #     if tablero.cuatroEnRaya()==2:
         #         game_over=True
         #         print ("gana máquina amarilla")
-        
+
         #código de dibujo        
         #limpiar pantalla
         screen.fill(NEGRO)
