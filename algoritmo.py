@@ -1,16 +1,15 @@
 from tablero import *
-import math
 
 # llama al algoritmo que decide la jugada y devuelve la posición elegida
 def juega(tablero):
-    profundidad = 4
-    mejorColumna = minimax(tablero, profundidad, False, None, None)[1]      
+    profundidad = 6
+    mejorColumna = minimax(tablero, profundidad, float("-inf"), float("inf"), False, None, None)[1]      
     fila = busca(tablero, mejorColumna) 
 
     return fila, mejorColumna
 
 # algoritmo minimax para decidir jugada óptima  
-def minimax(tablero, profundidad, jugador, filaAnterior, columnaAnterior):
+def minimax(tablero, profundidad, alfa, beta, jugador, filaAnterior, columnaAnterior):
     fin = finArbol(tablero, profundidad)
     ganador = jugadaGanadora(tablero, filaAnterior, columnaAnterior)
     mejorColumna = 0
@@ -23,7 +22,7 @@ def minimax(tablero, profundidad, jugador, filaAnterior, columnaAnterior):
             puntuacionMejor = -100000000
         # gana máquina
         elif (ganador == 2):
-            puntuacionMejor = float("inf")
+            puntuacionMejor = 100000000
         # límite profundidad
         elif (profundidad == 0):
             puntuacionMejor = evaluarSituacion(tablero, jugador)
@@ -50,22 +49,31 @@ def minimax(tablero, profundidad, jugador, filaAnterior, columnaAnterior):
 
             # juega jugador MIN
             if (jugador):
-                simulacionTablero.setCelda(fila, columna, 1)
-                # recibe la menor puntuación de las siguientes jugadas
-                puntuacionActual = minimax(simulacionTablero, profundidad-1, False, fila, columna)[0]
-                # si la puntuación es menor que las anteriores se guarda junto a la columna
-                if (puntuacionActual < puntuacionMejor):
-                    puntuacionMejor = puntuacionActual
-                    mejorColumna = columna
+                puntuacionActual = float("inf")
+                if (alfa < beta):
+                    simulacionTablero.setCelda(fila, columna, 1)
+                    # recibe la menor puntuación de las siguientes jugadas
+                    puntuacionActual = minimax(simulacionTablero, profundidad-1, alfa, beta, False, fila, columna)[0]
+                    # si la puntuación es menor que las anteriores se guarda junto a la columna
+                    if (puntuacionActual < puntuacionMejor):
+                        puntuacionMejor = puntuacionActual
+                        mejorColumna = columna
+                if (puntuacionActual < beta):
+                    beta = puntuacionActual
+
             # juega máquina MAX
             else:
-                simulacionTablero.setCelda(fila, columna, 2)
-                # recibe la mayor puntuación de las siguientes jugadas
-                puntuacionActual = minimax(simulacionTablero, profundidad-1, True, fila, columna)[0]
-                # si la puntuación es mayor que las anteriores se guarda junto a la columna
-                if (puntuacionActual > puntuacionMejor):
-                    puntuacionMejor = puntuacionActual
-                    mejorColumna = columna
+                puntuacionActual = float("-inf")
+                if (alfa < beta):
+                    simulacionTablero.setCelda(fila, columna, 2)
+                    # recibe la mayor puntuación de las siguientes jugadas
+                    puntuacionActual = minimax(simulacionTablero, profundidad-1, alfa, beta, True, fila, columna)[0]
+                    # si la puntuación es mayor que las anteriores se guarda junto a la columna
+                    if (puntuacionActual > puntuacionMejor):
+                        puntuacionMejor = puntuacionActual
+                        mejorColumna = columna
+                    if (puntuacionActual > alfa):
+                        alfa = puntuacionActual
 
     # devolverá la puntuación a nodos hijos para recordar la rama que les beneficie y la mejor columna a la raíz para así tomar la decisión
     return puntuacionMejor, mejorColumna
@@ -117,117 +125,90 @@ def jugadaGanadora(tablero, fila, columna):
 # devuelve true si hay victoria en horizontal
 def combinacionHorizontal(tablero, fila, columna):
     fichaBuscada = tablero.getCelda(fila, columna)
-    combinadas = 1
-    for columnaActual in range(columna + 1, columna + 4):
-        if (columnaActual < tablero.getAncho()):
-            fichaActual = tablero.getCelda(fila, columnaActual)
-            if (fichaActual == fichaBuscada):
-                combinadas += 1
-            else:
-                break
-        else:
-            break
 
-    if (combinadas == 4):
-        return True   
+    for columnaInicio in range(columna, columna + 4):
+        combinadas = 0
+        if (columnaInicio < tablero.getAncho()):
+            for columnaActual in range(columnaInicio, columna - 4, -1):
+                if (columnaActual >= 0):
+                    fichaActual = tablero.getCelda(fila, columnaActual)
+                    if (fichaActual == fichaBuscada):
+                        combinadas += 1
+                    else:
+                        break
 
-    for columnaActual in range(columna - 1, columna - 4, -1):
-        if (columnaActual >= 0):
-            fichaActual = tablero.getCelda(fila, columnaActual)
-            if (fichaActual != fichaBuscada):
-                return False
-        else:
-            return False
-    return True
+                    if (combinadas == 4):
+                        return True
+
+    return False
    
 # devuelve true si hay victoria en vertical 
 def combinacionVertical(tablero, fila, columna):
     fichaBuscada = tablero.getCelda(fila, columna)
-    combinadas = 1
-    for filaActual in range(fila + 1, fila + 4):
-        if (filaActual < tablero.getAlto()):
-            fichaActual = tablero.getCelda(filaActual, columna)
-            if (fichaActual == fichaBuscada):
-                combinadas += 1
-            else:
-                break
-        else:
-            break
 
-    if (combinadas == 4):
-        return True   
+    for filaInicio in range(fila, fila + 4):
+        combinadas = 0
+        if (filaInicio < tablero.getAlto()):
+            for filaActual in range(filaInicio, fila - 4, -1):
+                if (filaActual >= 0):
+                    fichaActual = tablero.getCelda(filaActual, columna)
+                    if (fichaActual == fichaBuscada):
+                        combinadas += 1
+                    else:
+                        break
 
-    for filaActual in range(fila - 1, fila - 4, -1):
-        if (filaActual >= 0):
-            fichaActual = tablero.getCelda(filaActual, columna)
-            if (fichaActual != fichaBuscada):
-                return False
-        else:
-            return False
-            
-    return True
+                    if (combinadas == 4):
+                        return True
+                        
+    return False
   
 # devuelve true si hay victoria en diagonal ascendente
 def combinacionDiagAsc(tablero, fila, columna):
     fichaBuscada = tablero.getCelda(fila, columna)
-    columnaActual = columna
-    combinadas = 1
-    for filaActual in range(fila - 1, fila - 4, -1):
-        columnaActual += 1
-        if ((filaActual >= 0) and (columnaActual < tablero.getAncho())):
-            fichaActual = tablero.getCelda(filaActual, columnaActual)
-            if (fichaActual == fichaBuscada):
-                combinadas += 1
-            else:
-                break
-        else:
-            break
 
-    if (combinadas == 4):
-        return True   
+    i = 0
+    for filaInicio in range(fila, fila-4, -1):
+        combinadas = 0
+        columnaActual = columna + i
+        if ((filaInicio >= 0) and (columnaActual < tablero.getAncho())):
+            for filaActual in range(filaInicio, fila+4):
+                if ((filaActual < tablero.getAlto()) and (columnaActual >= 0)):
+                    fichaActual = tablero.getCelda(filaActual, columnaActual)
+                    if (fichaActual == fichaBuscada):
+                        combinadas += 1
+                    else:
+                        break
 
-    columnaActual = columna
-    for filaActual in range(fila + 1, fila + 4):
-        columnaActual -= 1
-        if ((filaActual < tablero.getAlto()) and (columnaActual >= 0)):
-            fichaActual = tablero.getCelda(filaActual, columnaActual)
-            if (fichaActual != fichaBuscada):
-                return False
-        else:
-            return False
-            
-    return True
+                    if (combinadas == 4):
+                        return True
+                    columnaActual -= 1
+            i += 1
+                        
+    return False
 
 # devuelve true si hay victoria en diagonal descendente
 def combinacionDiagDesc(tablero, fila, columna):
     fichaBuscada = tablero.getCelda(fila, columna)
-    columnaActual = columna
-    combinadas = 1
-    for filaActual in range(fila - 1, fila - 4, -1):
-        columnaActual -= 1
-        if ((filaActual >= 0) and (columnaActual >= 0)):
-            fichaActual = tablero.getCelda(filaActual, columnaActual)
-            if (fichaActual == fichaBuscada):
-                combinadas += 1
-            else:
-                break
-        else:
-            break
 
-    if (combinadas == 4):
-        return True   
+    i = 0
+    for filaInicio in range(fila, fila+4):
+        combinadas = 0
+        columnaActual = columna + i
+        if ((filaInicio < tablero.getAlto()) and (columnaActual < tablero.getAncho())):
+            for filaActual in range(filaInicio, fila-4, -1):
+                if ((filaActual >= 0) and (columnaActual >= 0)):
+                    fichaActual = tablero.getCelda(filaActual, columnaActual)
+                    if (fichaActual == fichaBuscada):
+                        combinadas += 1
+                    else:
+                        break
 
-    columnaActual = columna
-    for filaActual in range(fila + 1, fila + 4):
-        columnaActual += 1
-        if ((filaActual < tablero.getAlto()) and (columnaActual < tablero.getAncho())):
-            fichaActual = tablero.getCelda(filaActual, columnaActual)
-            if (fichaActual != fichaBuscada):
-                return False
-        else:
-            return False
-            
-    return True
+                    if (combinadas == 4):
+                        return True
+                    columnaActual -= 1
+        i += 1
+                        
+    return False
 
 # evalúa la situación global de ambos jugadores y devuelve una puntuación
 def evaluarSituacion(tablero, jugador):
@@ -262,7 +243,7 @@ def puntuacionVertical(tablero, fichaEnemiga):
                     enemigas += 1
                 else:
                     aliadas += 1
-                puntuacion += sumarPuntos(vacias, enemigas, aliadas)
+            puntuacion += sumarPuntos(vacias, enemigas, aliadas)
             
     return puntuacion
 
@@ -284,7 +265,7 @@ def puntuacionHorizontal(tablero, fichaEnemiga):
                     enemigas += 1
                 else:
                     aliadas += 1
-                puntuacion += sumarPuntos(vacias, enemigas, aliadas)
+            puntuacion += sumarPuntos(vacias, enemigas, aliadas)
 
             if (tablero.getCelda(fila, columna) == 0):
                 columnasVacias += 1
@@ -311,7 +292,7 @@ def puntuacionDiagDcha(tablero, fichaEnemiga):
                     enemigas += 1
                 else:
                     aliadas += 1
-                puntuacion += sumarPuntos(vacias, enemigas, aliadas)
+            puntuacion += sumarPuntos(vacias, enemigas, aliadas)
 
     return puntuacion
 
@@ -332,27 +313,29 @@ def puntuacionDiagIzda(tablero, fichaEnemiga):
                     enemigas += 1
                 else:
                     aliadas += 1
-                puntuacion += sumarPuntos(vacias, enemigas, aliadas)
+            puntuacion += sumarPuntos(vacias, enemigas, aliadas)
 
     return puntuacion
 
 # suma puntos de las fichas en función del jugador
 def sumarPuntos(vacias, enemigas, aliadas):
     # puntos enemigo
-    if (enemigas == 3 and vacias == 1):
-        return -1000
-    elif (enemigas == 2 and vacias == 2):
-        return -7
-    elif (enemigas == 1 and vacias == 3):
-        return -3
+    if (enemigas > 0 and aliadas == 0):
+        if (enemigas == 3 and vacias == 1):
+            return -1000
+        elif (enemigas == 2 and vacias == 2):
+            return -7
+        elif (enemigas == 1 and vacias == 3):
+            return -3
     
     # puntos jugador
-    elif (aliadas == 3 and vacias == 1):
-        return 7
-    elif (aliadas == 2 and vacias == 2):
-        return 3
-    elif (aliadas == 1 and vacias == 3):
-        return 1
+    elif (aliadas > 0 and enemigas == 0):
+        if (aliadas == 3 and vacias == 1):
+            return 7
+        elif (aliadas == 2 and vacias == 2):
+            return 3
+        elif (aliadas == 1 and vacias == 3):
+            return 1
 
     else:
         return 0
