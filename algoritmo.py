@@ -1,8 +1,9 @@
 from tablero import *
+import random
 
 # llama al algoritmo que decide la jugada y devuelve la posición elegida
 def juega(tablero, jugador):
-    profundidad = 5
+    profundidad = 6
     return minimax(tablero, profundidad, jugador)
 
 # algoritmo minimax para decidir jugada óptima  
@@ -13,20 +14,21 @@ def minimax(tablero, profundidad, jugador):
     alfa = float("-inf")
     beta = float("inf")
  
-    # genera nodos en función de las jugadas posibles 
-    for columna in range(tablero.getAncho()):        
+    # genera nodos en función de las jugadas posibles
+    jugadasPosibles = getJugadasPosibles(tablero)
+    # se escoge jugada aleatoria para evitar una lógica predecible de la máquina
+    random.shuffle(jugadasPosibles)
+    for columna in jugadasPosibles:
         fila = busca(tablero, columna)
-        # si hay huecos en la columna
-        if fila != -1:
-            simulacionTablero = Tablero(tablero)
-            simulacionTablero.setCelda(fila, columna, jugador)
-            if (victoria(simulacionTablero, fila, columna)):
-                return fila, columna
-            puntuacionActual = juegaMin(simulacionTablero, profundidad-1, alfa, beta, jugador)
-            if (puntuacionActual > alfa):
-                alfa = puntuacionActual
-                posicion[0] = fila
-                posicion[1] = columna
+        simulacionTablero = Tablero(tablero)
+        simulacionTablero.setCelda(fila, columna, jugador)
+        if (victoria(simulacionTablero, fila, columna)):
+            return fila, columna
+        puntuacionActual = juegaMin(simulacionTablero, profundidad-1, alfa, beta, jugador)
+        if (puntuacionActual > alfa):
+            alfa = puntuacionActual
+            posicion[0] = fila
+            posicion[1] = columna
 
     # devolverá la mejor columna para así tomar la decisión
     return posicion
@@ -39,26 +41,30 @@ def juegaMin(tablero, profundidad, alfa, beta, jugadorEnemigo):
         return funcionEvaluacion(tablero, jugadorEnemigo)
 
     # selecciona la ficha del jugador MIN
+    # útil cuando juega el ordenador contra sí mismo
     if (jugadorEnemigo == 1):
         jugador = 2
     else:
         jugador = 1
 
+ 
+    # genera nodos en función de las jugadas posibles
+    jugadasPosibles = getJugadasPosibles(tablero)
+    # se escoge jugada aleatoria para evitar una lógica predecible de la máquina
+    random.shuffle(jugadasPosibles)
     # simula los siguientes movimientos de MIN
     for columna in range(tablero.getAncho()):
         fila = busca(tablero, columna)
-        # si hay huecos en la columna
-        if (fila != -1):
-            # crea una copia del tablero y coloca una ficha
-            simulacionTablero = Tablero(tablero)
-            simulacionTablero.setCelda(fila, columna, jugador)
-            if (victoria(simulacionTablero, fila, columna)):
-                return -1000000
-            # actualiza beta para cada nodo MAX siguiente
-            beta = min(beta, juegaMax(simulacionTablero, profundidad-1, alfa, beta, jugador))
-            # no interesa seguir buscando porque no elegirá este nodo
-            if (alfa >= beta):
-                break
+        # crea una copia del tablero y coloca una ficha
+        simulacionTablero = Tablero(tablero)
+        simulacionTablero.setCelda(fila, columna, jugador)
+        if (victoria(simulacionTablero, fila, columna)):
+            return -1000000
+        # actualiza beta para cada nodo MAX siguiente
+        beta = min(beta, juegaMax(simulacionTablero, profundidad-1, alfa, beta, jugador))
+        # no interesa seguir buscando porque no elegirá este nodo
+        if (alfa >= beta):
+            break
 
     return beta
 
@@ -70,26 +76,40 @@ def juegaMax(tablero, profundidad, alfa, beta, jugadorEnemigo):
         return -funcionEvaluacion(tablero, jugadorEnemigo)
 
     # selecciona la ficha del jugador MAX
+    # útil cuando juega el ordenador contra sí mismo
     if (jugadorEnemigo == 1):
         jugador = 2
     else:
         jugador = 1
 
+ 
+    # genera nodos en función de las jugadas posibles
+    jugadasPosibles = getJugadasPosibles(tablero)
+    # se escoge jugada aleatoria para evitar una lógica predecible de la máquina
+    random.shuffle(jugadasPosibles)
     # simula los siguientes movimientos de MAX
     for columna in range(tablero.getAncho()):
         fila = busca(tablero, columna)
-        # si hay huecos en la columna
-        if (fila != -1):
-            # crea una copia del tablero y coloca una ficha
-            simulacionTablero = Tablero(tablero)
-            simulacionTablero.setCelda(fila, columna, jugador)
-            # actualiza alfa para cada nodo MIN siguiente
-            alfa = max(alfa, juegaMin(simulacionTablero, profundidad-1, alfa, beta, jugador))
-            # no interesa seguir buscando porque no elegirá este nodo
-            if (alfa >= beta):
-                break
+        # crea una copia del tablero y coloca una ficha
+        simulacionTablero = Tablero(tablero)
+        simulacionTablero.setCelda(fila, columna, jugador)
+        # actualiza alfa para cada nodo MIN siguiente
+        alfa = max(alfa, juegaMin(simulacionTablero, profundidad-1, alfa, beta, jugador))
+        # no interesa seguir buscando porque no elegirá este nodo
+        if (alfa >= beta):
+            break
 
     return alfa
+
+# obtiene vector de jugadas posibles en función sus posiciones como columnas
+def getJugadasPosibles(tablero):
+    jugadasPosibles = []
+
+    for columna in range(tablero.getAncho()):
+        if (busca(tablero, columna) != -1):
+            jugadasPosibles.append(columna)
+    
+    return jugadasPosibles
 
 # devuelve la primera fila vacía de la columna indicada o -1 si están todas ocupadas
 def busca(tablero, columna):
