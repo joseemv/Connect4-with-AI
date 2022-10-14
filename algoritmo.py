@@ -93,6 +93,8 @@ def juegaMax(tablero, profundidad, alfa, beta, jugadorEnemigo):
         # crea una copia del tablero y coloca una ficha
         simulacionTablero = Tablero(tablero)
         simulacionTablero.setCelda(fila, columna, jugador)
+        if (victoria(simulacionTablero, fila, columna)):
+            return 1000000
         # actualiza alfa para cada nodo MIN siguiente
         alfa = max(alfa, juegaMin(simulacionTablero, profundidad-1, alfa, beta, jugador))
         # no interesa seguir buscando porque no elegirá este nodo
@@ -443,7 +445,7 @@ def sumarPuntos(vacias, aliadas, enemigas):
     # puntos enemigo
     elif (enemigas > 0 and aliadas == 0):
         if (enemigas == 4):
-            return -1000000
+            return -100
         elif (enemigas == 3):
             return -10
         elif (enemigas == 2):
