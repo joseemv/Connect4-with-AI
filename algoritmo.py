@@ -324,21 +324,18 @@ def puntuacionVertical(tablero, jugador):
         for fila in range(tablero.getAlto()-1, tablero.getAlto()-5, -1):
             # si encuentra una celda vacía no tiene sentido seguir buscando arriba
             if (tablero.estaVacia(fila, columna)):
-                break            
-            vacias = 0
+                break
             enemigas = 0
             aliadas = 0
             # vuelve a recorrer 3 posiciones hacia arriba para completar secuencia
             for filaActual in range(fila, fila-4, -1):
                 ficha = tablero.getCelda(filaActual, columna)
-                if (ficha == 0):
-                    vacias += 1
-                elif (ficha == jugador):
+                if (ficha == jugador):
                     aliadas += 1
-                else:
+                elif (ficha != 0 and ficha != jugador):
                     enemigas += 1
             # valora la secuencia de fichas observadas
-            puntuacion += sumarPuntos(vacias, aliadas, enemigas)
+            puntuacion += sumarPuntos(aliadas, enemigas)
             
     return puntuacion
 
@@ -366,7 +363,7 @@ def puntuacionHorizontal(tablero, jugador):
                 else:
                     enemigas += 1
             # valora la secuencia de fichas observadas
-            puntuacion += sumarPuntos(vacias, aliadas, enemigas)
+            puntuacion += sumarPuntos(aliadas, enemigas)
 
             if (tablero.getCelda(fila, columna) == 0):
                 columnasVacias += 1
@@ -386,20 +383,17 @@ def puntuacionDiagDcha(tablero, jugador):
         # segundo recorre el tablero hacia la derecha.
         # se limita la anchura para restringir combinaciones no válidas para ganar
         for columna in range(tablero.getAncho() - 3):
-            vacias = 0
             enemigas = 0
             aliadas = 0
             # vuelve a recorrer 3 posiciones hacia abajo y a la derecha para completar secuencia
             for posicion in range(4):
                 ficha = tablero.getCelda(fila + posicion, columna + posicion)
-                if (ficha == 0):
-                    vacias += 1
-                elif (ficha == jugador):
-                    enemigas += 1
-                else:
+                if (ficha == jugador):
                     aliadas += 1
+                elif (ficha != 0 and ficha != jugador):
+                    enemigas += 1
             # valora la secuencia de fichas observadas
-            puntuacion += sumarPuntos(vacias, aliadas, enemigas)
+            puntuacion += sumarPuntos(aliadas, enemigas)
 
     return puntuacion
 
@@ -412,25 +406,22 @@ def puntuacionDiagIzda(tablero, jugador):
         # segundo recorre el tablero hacia la derecha.
         # se limita la anchura para restringir combinaciones no válidas para ganar
         for columna in range(3, tablero.getAncho()):
-            vacias = 0
             enemigas = 0
             aliadas = 0
             # vuelve a recorrer 3 posiciones hacia abajo y a la izquierda para completar secuencia
             for posicion in range(4):
                 ficha = tablero.getCelda(fila + posicion, columna - posicion)
-                if (ficha == 0):
-                    vacias += 1
-                elif (ficha == jugador):
+                if (ficha == jugador):
                     aliadas += 1
-                else:
+                elif (ficha != 0 and ficha != jugador):
                     enemigas += 1
             # valora la secuencia de fichas observadas
-            puntuacion += sumarPuntos(vacias, aliadas, enemigas)
+            puntuacion += sumarPuntos(aliadas, enemigas)
 
     return puntuacion
 
 # suma puntos de las fichas en función de su combinación
-def sumarPuntos(vacias, aliadas, enemigas):    
+def sumarPuntos(aliadas, enemigas):    
     # puntos jugador
     if (aliadas > 0 and enemigas == 0):
         if (aliadas == 4):
