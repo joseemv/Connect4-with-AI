@@ -73,7 +73,7 @@ def juegaMax(tablero, profundidad, alfa, beta, jugadorEnemigo):
     # si es un nodo terminal
     if esHoja(tablero, profundidad):
         # devuelve valor negativo para MIN
-        return -funcionEvaluacion(tablero, jugadorEnemigo)
+        return funcionEvaluacion(tablero, jugadorEnemigo)
 
     # selecciona la ficha del jugador MAX
     # útil cuando juega el ordenador contra sí mismo
@@ -421,7 +421,7 @@ def puntuacionDiagIzda(tablero, jugador):
     return puntuacion
 
 # suma puntos de las fichas en función de su combinación
-def sumarPuntos(aliadas, enemigas):    
+def sumarPuntos(aliadas, enemigas):
     # puntos jugador
     if (aliadas > 0 and enemigas == 0):
         if (aliadas == 4):
@@ -435,11 +435,11 @@ def sumarPuntos(aliadas, enemigas):
 
     # puntos enemigo
     elif (enemigas > 0 and aliadas == 0):
-        if (enemigas == 4):
+        if (enemigas == 3):
             return -100
-        elif (enemigas == 3):
-            return -10
         elif (enemigas == 2):
+            return -10
+        elif (enemigas == 1):
             return -1
         else:
             return 0
