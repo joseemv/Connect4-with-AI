@@ -73,7 +73,7 @@ def juegaMax(tablero, profundidad, alfa, beta, jugadorEnemigo):
     # si es un nodo terminal
     if esHoja(tablero, profundidad):
         # devuelve valor negativo para MIN
-        return funcionEvaluacion(tablero, jugadorEnemigo)
+        return -funcionEvaluacion(tablero, jugadorEnemigo)
 
     # selecciona la ficha del jugador MAX
     # útil cuando juega el ordenador contra sí mismo
