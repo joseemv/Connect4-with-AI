@@ -8,7 +8,7 @@ def juega(tablero, jugador, habilitarAlfaBeta):
 
 # algoritmo minimax para decidir jugada óptima  
 def minimax(tablero, profundidad, jugador, habilitarAlfaBeta):
-    posicion = [None] * 2
+    posicion = [0] * 2
 
     # se inicializa la puntuación a valor infinito para que cualquier jugada posible sea mejor
     alfa = float("-inf")
@@ -438,11 +438,11 @@ def sumarPuntos(aliadas, enemigas):
 
     # puntos enemigo
     elif (enemigas > 0 and aliadas == 0):
-        if (enemigas == 3):
+        if (enemigas == 4):
             return -100
-        elif (enemigas == 2):
+        elif (enemigas == 3):
             return -10
-        elif (enemigas == 1):
+        elif (enemigas == 2):
             return -1
         else:
             return 0
