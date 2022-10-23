@@ -8,7 +8,7 @@ def juega(tablero, jugador, habilitarAlfaBeta):
 
 # algoritmo minimax para decidir jugada óptima  
 def minimax(tablero, profundidad, jugador, habilitarAlfaBeta):
-    posicion = [0] * 2
+    posicion = [-1] * 2
 
     # se inicializa la puntuación a valor infinito para que cualquier jugada posible sea mejor
     alfa = float("-inf")
