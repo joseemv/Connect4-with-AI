@@ -2,12 +2,12 @@ from tablero import *
 import random
 
 # llama al algoritmo que decide la jugada y devuelve la posición elegida
-def juega(tablero, jugador):
+def juega(tablero, jugador, habilitarAlfaBeta):
     profundidad = 6
-    return minimax(tablero, profundidad, jugador)
+    return minimax(tablero, profundidad, jugador, habilitarAlfaBeta)
 
 # algoritmo minimax para decidir jugada óptima  
-def minimax(tablero, profundidad, jugador):
+def minimax(tablero, profundidad, jugador, habilitarAlfaBeta):
     posicion = [None] * 2
 
     # se inicializa la puntuación a valor infinito para que cualquier jugada posible sea mejor
@@ -24,7 +24,8 @@ def minimax(tablero, profundidad, jugador):
         simulacionTablero.setCelda(fila, columna, jugador)
         if (victoria(simulacionTablero, fila, columna)):
             return fila, columna
-        puntuacionActual = juegaMin(simulacionTablero, profundidad-1, alfa, beta, jugador)
+        # si habilitarAlfaBeta es False, alfa y beta actuarán simplemente como el mejor valor del nodo sin ejercer la poda
+        puntuacionActual = juegaMin(simulacionTablero, profundidad-1, alfa, beta, jugador, habilitarAlfaBeta)
         if (puntuacionActual > alfa):
             alfa = puntuacionActual
             posicion[0] = fila
@@ -34,7 +35,7 @@ def minimax(tablero, profundidad, jugador):
     return posicion
 
 # MIN será el oponente del jugador que invoque el algoritmo
-def juegaMin(tablero, profundidad, alfa, beta, jugadorEnemigo):
+def juegaMin(tablero, profundidad, alfa, beta, jugadorEnemigo, habilitarAlfaBeta):
     # si es un nodo terminal
     if esHoja(tablero, profundidad):
         # devuelve valor positivo para MAX
@@ -61,15 +62,16 @@ def juegaMin(tablero, profundidad, alfa, beta, jugadorEnemigo):
         if (victoria(simulacionTablero, fila, columna)):
             return -1000000
         # actualiza beta para cada nodo MAX siguiente
-        beta = min(beta, juegaMax(simulacionTablero, profundidad-1, alfa, beta, jugador))
-        # no interesa seguir buscando porque no elegirá este nodo
-        if (alfa >= beta):
+        beta = min(beta, juegaMax(simulacionTablero, profundidad-1, alfa, beta, jugador, habilitarAlfaBeta))
+        # si se habilita la poda alfa-beta
+        if (habilitarAlfaBeta == True and alfa >= beta):
+            # no interesa seguir buscando porque no elegirá este nodo
             break
 
     return beta
 
 # MAX será el jugador que invoque el algoritmo
-def juegaMax(tablero, profundidad, alfa, beta, jugadorEnemigo):
+def juegaMax(tablero, profundidad, alfa, beta, jugadorEnemigo, habilitarAlfaBeta):
     # si es un nodo terminal
     if esHoja(tablero, profundidad):
         # devuelve valor negativo para MIN
@@ -96,9 +98,10 @@ def juegaMax(tablero, profundidad, alfa, beta, jugadorEnemigo):
         if (victoria(simulacionTablero, fila, columna)):
             return 1000000
         # actualiza alfa para cada nodo MIN siguiente
-        alfa = max(alfa, juegaMin(simulacionTablero, profundidad-1, alfa, beta, jugador))
-        # no interesa seguir buscando porque no elegirá este nodo
-        if (alfa >= beta):
+        alfa = max(alfa, juegaMin(simulacionTablero, profundidad-1, alfa, beta, jugador, habilitarAlfaBeta))
+        # si se habilita la poda alfa-beta
+        if (habilitarAlfaBeta == True and alfa >= beta):
+            # no interesa seguir buscando porque no elegirá este nodo
             break
 
     return alfa
