@@ -2,8 +2,7 @@ from tablero import *
 import random
 
 # llama al algoritmo que decide la jugada y devuelve la posición elegida
-def juega(tablero, jugador, habilitarAlfaBeta):
-    profundidad = 6
+def juega(tablero, profundidad, jugador, habilitarAlfaBeta):
     return minimax(tablero, profundidad, jugador, habilitarAlfaBeta)
 
 # algoritmo minimax para decidir jugada óptima  
@@ -353,17 +352,14 @@ def puntuacionHorizontal(tablero, jugador):
         # segundo recorre el tablero hacia la derecha.
         # se limita la anchura para restringir combinaciones no válidas para ganar
         for columna in range(tablero.getAncho() - 3):
-            vacias = 0
             enemigas = 0
             aliadas = 0
             # vuelve a recorrer 3 posiciones hacia la derecha para completar secuencia
             for columnaActual in range(columna, columna + 4):
                 ficha = tablero.getCelda(fila, columnaActual)
-                if (ficha == 0):
-                    vacias += 1
-                elif (ficha == jugador):
+                if (ficha == jugador):
                     aliadas += 1
-                else:
+                elif (ficha != 0 and ficha != jugador):
                     enemigas += 1
             # valora la secuencia de fichas observadas
             puntuacion += sumarPuntos(aliadas, enemigas)
