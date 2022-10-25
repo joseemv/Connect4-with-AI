@@ -43,9 +43,9 @@ def main():
                     print ("gana persona")
                 else:  #si la persona no ha ganado, juega la máquina
                     profundidad = 6
-                    fichaJugadorActual = 2
                     habilitarAlfaBeta = True
-                    posicion = juega(tablero, profundidad, fichaJugadorActual, habilitarAlfaBeta)
+                    fichaJugadorActual = 2
+                    posicion = juega(tablero, profundidad, habilitarAlfaBeta, fichaJugadorActual)
                     tablero.setCelda(posicion[0], posicion[1], 2)
                     if tablero.cuatroEnRaya()==2:
                         game_over=True
