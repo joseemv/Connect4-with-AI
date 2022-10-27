@@ -4,113 +4,95 @@ import random
 # variables globales
 JUGADOR_MIN = 1
 JUGADOR_MAX = 2
+TOTAL_FILAS = 7
+TOTAL_COLUMNAS = 8
 
 # llama al algoritmo que decide la jugada y devuelve la posición elegida
-def juega(tablero, profundidad=5, habilitarAlfaBeta=True, jugadorMax=True):
-    return minimax(tablero, profundidad, habilitarAlfaBeta, jugadorMax)
-
-# algoritmo minimax para decidir jugada óptima  
-def minimax(tablero, profundidad, habilitarAlfaBeta, jugadorMax):
+def juega(tablero, profundidad=6, habilitarAlfaBeta=True, jugadorMax=True):
+    global TOTAL_FILAS, TOTAL_COLUMNAS
+    TOTAL_FILAS = tablero.getAlto()
+    TOTAL_COLUMNAS = tablero.getAncho()
     posicion = [-1] * 2
-    jugadorInicial = 1
-    if (jugadorMax):
-        jugadorInicial = 2
 
     # se inicializa la puntuación a valor infinito para que cualquier jugada posible sea mejor
     alfa = float("-inf")
     beta = float("inf")
- 
-    # genera nodos en función de las jugadas posibles
-    jugadasPosibles = getJugadasPosibles(tablero)
-    # se escoge jugada aleatoria para evitar una lógica predecible de la máquina
-    random.shuffle(jugadasPosibles)
-    for columna in jugadasPosibles:
-        fila = busca(tablero, columna)
-        simulacionTablero = Tablero(tablero)
-        simulacionTablero.setCelda(fila, columna, jugadorInicial)
-        # si gana en la primera jugada no tiene sentido continuar el algoritmo
-        if (victoria(simulacionTablero, fila, columna)):
-            posicion[0] = fila
-            posicion[1] = columna
-            return posicion
 
-        if (jugadorMax):
-            puntuacionActual = juegaMin(simulacionTablero, profundidad-1, alfa, beta, habilitarAlfaBeta)
-            if (puntuacionActual > alfa):
-                alfa = puntuacionActual
-                posicion[0] = fila
-                posicion[1] = columna
-        else:
-            puntuacionActual = juegaMax(simulacionTablero, profundidad-1, alfa, beta, habilitarAlfaBeta)
-            if (puntuacionActual < beta):
-                beta = puntuacionActual
-                posicion[0] = fila
-                posicion[1] = columna
+    columna = minimax(tablero, profundidad, alfa, beta, habilitarAlfaBeta, jugadorMax)[0]
+    fila = busca(tablero, columna)
+    posicion[0] = fila
+    posicion[1] = columna
 
-    # devolverá la mejor columna para así tomar la decisión
     return posicion
 
-# MIN será el oponente del jugador que invoque el algoritmo
-def juegaMin(tablero, profundidad, alfa, beta, habilitarAlfaBeta):
+# algoritmo minimax para decidir jugada óptima  
+def minimax(tablero, profundidad, alfa, beta, habilitarAlfaBeta, jugadorMax):
     # si es un nodo terminal
     if esHoja(tablero, profundidad):
-        # devuelve valor positivo para MAX
-        return funcionEvaluacion(tablero)
- 
+        # devuelve el valor de la función de evaluación
+        return -1, funcionEvaluacion(tablero)
+    
+    mejorColumna = 0
+    # necesario almacenar la puntuación para que sea independiente al turno de MIN o MAX
+    if (jugadorMax):
+        mejorPuntuacion = float("-inf")
+    else:
+        mejorPuntuacion = float("inf")
     # genera nodos en función de las jugadas posibles
     jugadasPosibles = getJugadasPosibles(tablero)
     # se escoge jugada aleatoria para evitar una lógica predecible de la máquina
     random.shuffle(jugadasPosibles)
-    # simula los siguientes movimientos de MIN
-    for columna in range(tablero.getAncho()):
+    # simula los siguientes movimientos
+    for columna in jugadasPosibles:
         fila = busca(tablero, columna)
-        # crea una copia del tablero y coloca una ficha
+        # crea una copia del tablero
         simulacionTablero = Tablero(tablero)
-        simulacionTablero.setCelda(fila, columna, JUGADOR_MIN)
-        if (victoria(simulacionTablero, fila, columna)):
-            return -1000000
-        # actualiza beta para cada nodo MAX siguiente
-        beta = min(beta, juegaMax(simulacionTablero, profundidad-1, alfa, beta, habilitarAlfaBeta))
-        # si se habilita la poda alfa-beta
-        if (habilitarAlfaBeta == True and alfa >= beta):
-            # no interesa seguir buscando porque no elegirá este nodo
-            break
+        # turno de MAX
+        if (jugadorMax):
+            #  coloca una ficha
+            simulacionTablero.setCelda(fila, columna, JUGADOR_MAX)
+            # si el jugador gana con la última jugada
+            if (victoria(simulacionTablero, fila, columna)):
+                # devuelve la columna por si ocurre en el primer nivel del árbol
+                return columna, 1000000
+            # actualiza alfa para cada nodo MIN siguiente
+            alfa = max(alfa, minimax(simulacionTablero, profundidad-1, alfa, beta, habilitarAlfaBeta, False)[1])
+            # almacena la mejor puntuación y columna de este turno
+            if alfa > mejorPuntuacion:
+                mejorPuntuacion = alfa
+                mejorColumna = columna
+            # si se habilita la poda alfa-beta
+            if (habilitarAlfaBeta == True and alfa >= beta):
+                # no interesa seguir buscando porque no elegirá este nodo
+                break
 
-    return beta
+        # turno de MIN
+        else:
+            # coloca una ficha
+            simulacionTablero.setCelda(fila, columna, JUGADOR_MIN)
+            # si el jugador gana con la última jugada
+            if (victoria(simulacionTablero, fila, columna)):
+                # devuelve la columna por si ocurre en el primer nivel del árbol
+                return columna, -1000000
+            # actualiza beta para cada nodo MAX siguiente
+            beta = min(beta, minimax(simulacionTablero, profundidad-1, alfa, beta, habilitarAlfaBeta, True)[1])
+            # almacena la mejor puntuación y columna de este turno
+            if beta < mejorPuntuacion:
+                mejorPuntuacion = beta
+                mejorColumna = columna
+            # si se habilita la poda alfa-beta
+            if (habilitarAlfaBeta == True and alfa >= beta):
+                # no interesa seguir buscando porque no elegirá este nodo
+                break
 
-# MAX será el jugador que invoque el algoritmo
-def juegaMax(tablero, profundidad, alfa, beta, habilitarAlfaBeta):
-    # si es un nodo terminal
-    if esHoja(tablero, profundidad):
-        # devuelve valor negativo para MIN
-        return funcionEvaluacion(tablero)
- 
-    # genera nodos en función de las jugadas posibles
-    jugadasPosibles = getJugadasPosibles(tablero)
-    # se escoge jugada aleatoria para evitar una lógica predecible de la máquina
-    random.shuffle(jugadasPosibles)
-    # simula los siguientes movimientos de MAX
-    for columna in range(tablero.getAncho()):
-        fila = busca(tablero, columna)
-        # crea una copia del tablero y coloca una ficha
-        simulacionTablero = Tablero(tablero)
-        simulacionTablero.setCelda(fila, columna, JUGADOR_MAX)
-        if (victoria(simulacionTablero, fila, columna)):
-            return 1000000
-        # actualiza alfa para cada nodo MIN siguiente
-        alfa = max(alfa, juegaMin(simulacionTablero, profundidad-1, alfa, beta, habilitarAlfaBeta))
-        # si se habilita la poda alfa-beta
-        if (habilitarAlfaBeta == True and alfa >= beta):
-            # no interesa seguir buscando porque no elegirá este nodo
-            break
-
-    return alfa
+    # devolverá la mejor columna al nodo raíz y la mejor puntuación de cada nodo en recursión
+    return mejorColumna, mejorPuntuacion
 
 # obtiene vector de jugadas posibles en función sus posiciones como columnas
 def getJugadasPosibles(tablero):
     jugadasPosibles = []
 
-    for columna in range(tablero.getAncho()):
+    for columna in range(TOTAL_COLUMNAS):
         if (busca(tablero, columna) != -1):
             jugadasPosibles.append(columna)
     
@@ -119,7 +101,7 @@ def getJugadasPosibles(tablero):
 # devuelve la primera fila vacía de la columna indicada o -1 si están todas ocupadas
 def busca(tablero, columna):
     # recorre filas de la columna de abajo hacia arriba
-    for fila in range(tablero.getAlto()-1 , -1, -1):
+    for fila in range(TOTAL_FILAS-1 , -1, -1):
         # si encuentra celda vacía
         if (tablero.getCelda(fila, columna) == 0):
             return fila   
@@ -152,7 +134,7 @@ def combinacionHorizontal(tablero, fila, columna):
     for columnaInicio in range(columna, columna + 4):
         combinadas = 0
         # límite del tablero
-        if (columnaInicio < tablero.getAncho()):
+        if (columnaInicio < TOTAL_COLUMNAS):
             # después recorre hacia la izquierda
             for columnaActual in range(columnaInicio, columna - 4, -1):
                 # límite del tablero
@@ -186,7 +168,7 @@ def combinacionVertical(tablero, fila, columna):
     for filaInicio in range(fila, fila + 4):
         combinadas = 0
         # límite del tablero
-        if (filaInicio < tablero.getAlto()):
+        if (filaInicio < TOTAL_FILAS):
             # después recorre hacia arriba
             for filaActual in range(filaInicio, fila - 4, -1):
                 # límite del tablero
@@ -224,11 +206,11 @@ def combinacionDiagAsc(tablero, fila, columna):
         # sigue el traslado de la fila hacia la derecha
         columnaActual = columna + i
         # límites del tablero
-        if ((filaInicio >= 0) and (columnaActual < tablero.getAncho())):
+        if ((filaInicio >= 0) and (columnaActual < TOTAL_COLUMNAS)):
             # después recorre hacia abajo
             for filaActual in range(filaInicio, fila+4):
                 # límites del tablero
-                if ((filaActual < tablero.getAlto()) and (columnaActual >= 0)):
+                if ((filaActual < TOTAL_FILAS) and (columnaActual >= 0)):
                     fichaActual = tablero.getCelda(filaActual, columnaActual)
                     if (fichaActual == fichaBuscada):
                         combinadas += 1
@@ -265,7 +247,7 @@ def combinacionDiagDesc(tablero, fila, columna):
         # sigue el traslado de la fila hacia la derecha
         columnaActual = columna + i
         # límites del tablero
-        if ((filaInicio < tablero.getAlto()) and (columnaActual < tablero.getAncho())):
+        if ((filaInicio < TOTAL_FILAS) and (columnaActual < TOTAL_COLUMNAS)):
             # después recorre hacia arriba
             for filaActual in range(filaInicio, fila-4, -1):
                 # límites del tablero
@@ -301,7 +283,7 @@ def esHoja(tablero, profundidad):
 
 # devuelve True si aún quedan espacios libres
 def jugadaPosible(tablero):    
-    for columna in range(tablero.getAncho()):
+    for columna in range(TOTAL_COLUMNAS):
         if (busca(tablero, columna) != -1):
             return True
 
@@ -322,8 +304,8 @@ def puntuacionCentral(tablero):
     columnasCentrales = []
 
 	# almacena las fichas de las columnas en una lista
-    for fila in range(tablero.getAlto()):
-        for columna in range(3,4):
+    for fila in range(TOTAL_FILAS):
+        for columna in range(3,5):
             columnasCentrales.append(tablero.getCelda(fila, columna))
     # cuenta las fichas de la lista que pertenezcan al jugador
     contadorMax = columnasCentrales.count(JUGADOR_MAX)
@@ -337,10 +319,10 @@ def puntuacionVertical(tablero):
     puntuacion = 0
 
     # primero recorre tablero hacia la derecha
-    for columna in range(tablero.getAncho()):
+    for columna in range(TOTAL_COLUMNAS):
         # segundo recorre el tablero hacia arriba.
         # se limita la altura para restringir combinaciones no válidas para ganar
-        for fila in range(tablero.getAlto()-1, tablero.getAlto()-5, -1):
+        for fila in range(TOTAL_FILAS-1, TOTAL_FILAS-5, -1):
             # si encuentra una celda vacía no tiene sentido seguir buscando arriba
             if (tablero.estaVacia(fila, columna)):
                 break
@@ -363,12 +345,12 @@ def puntuacionHorizontal(tablero):
     puntuacion = 0
 
     # primero recorre tablero hacia abajo
-    for fila in range(tablero.getAlto()-1, 0, -1):
+    for fila in range(TOTAL_FILAS-1, 0, -1):
         # se cuentan las columnas vacías
         columnasVacias = 0
         # segundo recorre el tablero hacia la derecha.
         # se limita la anchura para restringir combinaciones no válidas para ganar
-        for columna in range(tablero.getAncho() - 3):
+        for columna in range(TOTAL_COLUMNAS - 3):
             fichasMin = 0
             fichasMax = 0
             # vuelve a recorrer 3 posiciones hacia la derecha para completar secuencia
@@ -384,7 +366,7 @@ def puntuacionHorizontal(tablero):
             if (tablero.getCelda(fila, columna) == 0):
                 columnasVacias += 1
         # si una fila completa está vacía no tiene sentido seguir buscando por encima
-        if (columnasVacias == tablero.getAncho()):
+        if (columnasVacias == TOTAL_COLUMNAS):
             break
             
     return puntuacion
@@ -395,10 +377,10 @@ def puntuacionDiagDcha(tablero):
 
     # primero recorre tablero hacia abajo
     # se limita la altura para restringir combinaciones no válidas para ganar
-    for fila in range(tablero.getAlto() - 3):
+    for fila in range(TOTAL_FILAS - 3):
         # segundo recorre el tablero hacia la derecha.
         # se limita la anchura para restringir combinaciones no válidas para ganar
-        for columna in range(tablero.getAncho() - 3):
+        for columna in range(TOTAL_COLUMNAS - 3):
             fichasMin = 0
             fichasMax = 0
             # vuelve a recorrer 3 posiciones hacia abajo y a la derecha para completar secuencia
@@ -418,10 +400,10 @@ def puntuacionDiagIzda(tablero):
     puntuacion = 0
 
     # primero recorre tablero hacia abajo
-    for fila in range(tablero.getAlto() - 3):
+    for fila in range(TOTAL_FILAS - 3):
         # segundo recorre el tablero hacia la derecha.
         # se limita la anchura para restringir combinaciones no válidas para ganar
-        for columna in range(3, tablero.getAncho()):
+        for columna in range(3, TOTAL_COLUMNAS):
             fichasMin = 0
             fichasMax = 0
             # vuelve a recorrer 3 posiciones hacia abajo y a la izquierda para completar secuencia
