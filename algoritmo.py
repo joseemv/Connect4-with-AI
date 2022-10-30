@@ -54,7 +54,7 @@ def minimax(tablero, profundidad, alfa, beta, habilitarAlfaBeta, jugadorMax):
             # si el jugador gana con la última jugada
             if (victoria(simulacionTablero, fila, columna)):
                 # devuelve la columna por si ocurre en el primer nivel del árbol
-                return columna, 1000000
+                return columna, 1000000 * profundidad
             # actualiza alfa para cada nodo MIN siguiente
             alfa = max(alfa, minimax(simulacionTablero, profundidad-1, alfa, beta, habilitarAlfaBeta, False)[1])
             # almacena la mejor puntuación y columna de este turno
@@ -73,7 +73,7 @@ def minimax(tablero, profundidad, alfa, beta, habilitarAlfaBeta, jugadorMax):
             # si el jugador gana con la última jugada
             if (victoria(simulacionTablero, fila, columna)):
                 # devuelve la columna por si ocurre en el primer nivel del árbol
-                return columna, -1000000
+                return columna, -1000000 * profundidad
             # actualiza beta para cada nodo MAX siguiente
             beta = min(beta, minimax(simulacionTablero, profundidad-1, alfa, beta, habilitarAlfaBeta, True)[1])
             # almacena la mejor puntuación y columna de este turno
@@ -88,7 +88,7 @@ def minimax(tablero, profundidad, alfa, beta, habilitarAlfaBeta, jugadorMax):
     # devolverá la mejor columna al nodo raíz y la mejor puntuación de cada nodo en recursión
     return mejorColumna, mejorPuntuacion
 
-# obtiene vector de jugadas posibles en función sus posiciones como columnas
+# obtiene lista de jugadas posibles en función sus posiciones como columnas
 def getJugadasPosibles(tablero):
     jugadasPosibles = []
 
@@ -111,23 +111,23 @@ def busca(tablero, columna):
 # devuelve True si el jugador gana con el movimiento facilitado
 # agiliza la comprobación de victoria limitando el campo de búsqueda de la combinación ganadora
 def victoria(tablero, fila, columna):
-    if (combinacionHorizontal(tablero, fila, columna)):
+    fichaBuscada = tablero.getCelda(fila, columna)
+
+    if (combinacionHorizontal(tablero, fila, columna, fichaBuscada)):
         return True
     else:
-        if (combinacionVertical(tablero, fila, columna)):
+        if (combinacionVertical(tablero, fila, columna, fichaBuscada)):
             return True
         else:
-            if (combinacionDiagAsc(tablero, fila, columna)):
+            if (combinacionDiagAsc(tablero, fila, columna, fichaBuscada)):
                 return True
             else:
-                if (combinacionDiagDesc(tablero, fila, columna)):
+                if (combinacionDiagDesc(tablero, fila, columna, fichaBuscada)):
                     return True
     return False
 
 # devuelve True si hay victoria en horizontal
-def combinacionHorizontal(tablero, fila, columna):
-    fichaBuscada = tablero.getCelda(fila, columna)
-
+def combinacionHorizontal(tablero, fila, columna, fichaBuscada):
     # comprueba si existe combinación ganadora teniendo en cuenta los 6 espacios adyacentes
     # a la posición pasada por parámetro.
     # primero recorre hacia la derecha
@@ -159,9 +159,7 @@ def combinacionHorizontal(tablero, fila, columna):
     return False
    
 # devuelve True si hay victoria en vertical 
-def combinacionVertical(tablero, fila, columna):
-    fichaBuscada = tablero.getCelda(fila, columna)
-
+def combinacionVertical(tablero, fila, columna, fichaBuscada):
     # comprueba si existe combinación ganadora teniendo en cuenta los 6 espacios adyacentes
     # a la posición pasada por parámetro.
     # primero recorre hacia abajo
@@ -193,9 +191,7 @@ def combinacionVertical(tablero, fila, columna):
     return False
   
 # devuelve True si hay victoria en diagonal ascendente
-def combinacionDiagAsc(tablero, fila, columna):
-    fichaBuscada = tablero.getCelda(fila, columna)
-
+def combinacionDiagAsc(tablero, fila, columna, fichaBuscada):
     # iterador de la columna inicial
     i = 0
     # comprueba si existe combinación ganadora teniendo en cuenta los 6 espacios en diagonal
@@ -234,9 +230,7 @@ def combinacionDiagAsc(tablero, fila, columna):
     return False
 
 # devuelve True si hay victoria en diagonal descendente
-def combinacionDiagDesc(tablero, fila, columna):
-    fichaBuscada = tablero.getCelda(fila, columna)
-
+def combinacionDiagDesc(tablero, fila, columna, fichaBuscada):
     # iterador de la columna inicial
     i = 0
     # comprueba si existe combinación ganadora teniendo en cuenta los 6 espacios en diagonal
@@ -310,7 +304,7 @@ def puntuacionCentral(tablero):
     # cuenta las fichas de la lista que pertenezcan al jugador
     contadorMax = columnasCentrales.count(JUGADOR_MAX)
     contadorMin = columnasCentrales.count(JUGADOR_MIN)
-    puntuacion = contadorMax - contadorMin
+    puntuacion = (contadorMax - contadorMin)
 
     return puntuacion
 
@@ -420,27 +414,23 @@ def puntuacionDiagIzda(tablero):
 
 # suma puntos de las fichas en función de su combinación
 def sumarPuntos(fichasMax, fichasMin):
-    # puntos jugador
+    # puntos MAX
     if (fichasMax > 0 and fichasMin == 0):
-        if (fichasMax == 4):
+        if (fichasMax == 3):
             return 100
-        elif (fichasMax == 3):
-            return 10
         elif (fichasMax == 2):
+            return 10
+        else:
             return 1
-        else:
-            return 0
 
-    # puntos enemigo
+    # puntos MIN
     elif (fichasMin > 0 and fichasMax == 0):
-        if (fichasMin == 4):
+        if (fichasMin == 3):
             return -100
-        elif (fichasMin == 3):
-            return -10
         elif (fichasMin == 2):
-            return -1
+            return -10
         else:
-            return 0
+            return -1
 
     # no puntúa     
     else:
