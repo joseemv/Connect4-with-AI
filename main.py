@@ -1,5 +1,4 @@
-import sys, pygame
-from time import sleep
+import pygame
 from tablero import *
 from algoritmo import *
 from pygame.locals import *
@@ -42,10 +41,7 @@ def main():
                     game_over=True
                     print ("gana persona")
                 else:  #si la persona no ha ganado, juega la máquina
-                    profundidad = 6
-                    habilitarAlfaBeta = True
-                    fichaJugadorActual = 2
-                    posicion = juega(tablero, profundidad, habilitarAlfaBeta, fichaJugadorActual)
+                    posicion = juega(tablero)
                     tablero.setCelda(posicion[0], posicion[1], 2)
                     if tablero.cuatroEnRaya()==2:
                         game_over=True
